@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>杖劍傳說升級經驗計算器｜nos</title>
+  <style>
+    :root {
+      --primary: #007bff;
+      --primary-hover: #0056b3;
+      --secondary: #6c757d;
+      --background: #f4f7f9;
+      --card-bg: #ffffff;
+      --text: #212529;
+      --text-light: #495057;
+      --input-border: #ced4da;
+      --error: #dc3545;
+      --radius: 8px;
+      --shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+      --font: 'Segoe UI', 'Helvetica Neue', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: var(--background);
+      font-family: var(--font);
+      color: var(--text);
+      padding: 15px;
+      font-size: 15px;
+    }
+
+    .main-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 800px;
+      padding: 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .form-container {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    h2 {
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 22px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    input[type="number"] {
+      padding: 8px 10px;
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+      outline: none;
+    }
+    
+    input.invalid {
+      border-color: var(--error);
+    }
+
+    .error-msg {
+      color: var(--error);
+      font-size: 13px;
+      font-weight: 500;
+      height: 1.2em;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease-in-out;
+      text-align: center;
+    }
+    
+    .error-msg.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      background: var(--secondary);
+      color: white;
+    }
+
+    button:hover {
+      background: #5a6268;
+      transform: translateY(-1px);
+    }
+
+    .results-container {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      animation: fadeIn 0.5s 0.2s forwards;
+    }
+    
+    .results-container.visible {
+      display: flex;
+    }
+
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .results-grid {
+      display: flex;
+      gap: 15px;
+    }
+
+    .result-column {
+      flex: 1;
+      padding: 12px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .result-column h3 {
+      text-align: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 6px;
+    }
+    
+    .result-column p {
+      margin: 0;
+      line-height: 1.3;
+      color: var(--text-light);
+    }
+    
+    .result-column span {
+      font-weight: 600;
+      color: var(--primary);
+      display: block;
+      font-size: 1em;
+    }
+
+    @media (max-width: 1000px), (max-height: 720px) {
+      body {
+        align-items: flex-start;
+        overflow-y: auto;
+      }
+    }
+    
+    @media (max-width: 600px) {
+      .results-grid { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="main-container">
+    <div class="form-container">
+      <h2>杖劍傳說升級經驗計算器</h2>
+      <form id="expForm" novalidate>
+        <div class="form-group">
+          <label for="currentLevel">現在等級</label>
+          <input id="currentLevel" type="number" min="1" max="183" value="1" required>
+        </div>
+        <div class="form-group">
+          <label for="currentExp">現有經驗</label>
+          <input id="currentExp" type="number" min="0" value="0" required>
+        </div>
+        <div class="form-group">
+          <label for="targetLevel">目標等級</label>
+          <input id="targetLevel" type="number" min="1" max="183" value="100" required>
+        </div>
+        <div class="form-group">
+          <label for="expPerHour">每小時經驗</label>
+          <input id="expPerHour" type="number" min="1" value="20000" required>
+        </div>
+        <div class="form-group">
+          <label for="dailyBoosts">日常加速次數</label>
+          <input id="dailyBoosts" type="number" min="0" value="0" required>
+        </div>
+        <div class="form-group">
+          <label for="stoneBoosts">時間結晶次數</label>
+          <input id="stoneBoosts" type="number" min="0" value="0" required>
+        </div>
+        <div class="error-msg" id="globalError"></div>
+        <div class="button-group">
+          <button id="resetBtn" type="button">重置</button>
+        </div>
+      </form>
+    </div>
+    
+    <section id="results" class="results-container">
+      <div class="results-grid">
+        <div class="result-column">
+          <h3>無加速</h3>
+          <p>剩餘經驗值:<span id="noBoostRemaining"></span></p>
+          <p>所需秒數:<span id="noBoostSeconds"></span></p>
+          <p>預計完成時間:<span id="noBoostFinishTime"></span></p>
+          <p>剩餘時間:<span id="noBoostCountdown"></span></p>
+        </div>
+        <div class="result-column">
+          <h3>有加速</h3>
+          <p>剩餘經驗值:<span id="boostRemaining"></span></p>
+          <p>所需秒數:<span id="boostSeconds"></span></p>
+          <p>預計完成時間:<span id="boostFinishTime"></span></p>
+          <p>剩餘時間:<span id="boostCountdown"></span></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const levelExpTable = {1:80,2:90,3:90,4:90,5:90,6:90,7:90,8:90,9:100,10:350,11:355,12:360,13:370,14:375,15:390,16:400,17:450,18:500,19:500,20:1483,21:1844,22:1865,23:1916,24:2043,25:2067,26:2169,27:2437,28:2536,29:2860,30:2995,31:3607,32:3794,33:3876,34:3996,35:4261,36:4289,37:4510,38:4928,39:5086,40:17203,41:19189,42:21484,43:21509,44:23052,45:24627,46:25480,47:26852,48:29068,49:32008,50:33168,51:33332,52:34095,53:35628,54:35929,55:37680,56:38331,57:38878,58:39016,59:41731,60:43128,61:45042,62:45412,63:47152,64:47282,65:47340,66:50487,67:53076,68:54257,69:54405,70:197114,71:310414,72:330204,73:334735,74:348791,75:360389,76:360701,77:362826,78:378632,79:379059,80:408765,81:440713,82:464670,83:467234,84:477970,85:484690,86:509874,87:513879,88:527583,89:532378,90:583801,91:612907,92:643189,93:644274,94:670957,95:678226,96:706678,97:712891,98:749807,99:751452,100:886000,101:3027527,102:3032011,103:3117883,104:3191855,105:3220513,106:3258763,107:3346658,108:3389858,109:3548753,110:1250000,111:1250000,112:3796167,113:3866624,114:3924404,115:4029348,116:4101565,117:4245434,118:4245686,119:4514881,120:4566377,121:4752888,122:1830000,123:5012377,124:5016341,125:5178619,126:5229563,127:5423881,128:5459728,129:6075412,130:6264669,131:6570400,132:6847214,133:7126436,134:7408064,135:7710769,136:7978540,137:8247515,138:8517693,139:8789075,140:9062116,141:9335906,142:9610899,143:9887095,144:10164495,145:10467786,146:10773484,147:11081589,148:11392100,149:11705019,150:12023795,151:12341543,152:12632790,153:12822678,154:13013769,155:13176253,156:13369450,157:13563851,158:13728742,159:13925248,160:14122619,161:14289916,162:14489730,163:14690748,164:14892969,165:15096393,166:15301021,167:15506853,168:15747608,169:15956147,170:16199967,171:16411213,172:16658585,173:16872538,174:17123220,175:17339881,176:17593872,177:17593872,178:17593872,179:17593872,180:17593872,181:17593872,182:17593872,183:17593872};
+    const prefixSum = [0];
+    for (let lv = 1; lv <= 183; lv++) {
+      prefixSum[lv] = prefixSum[lv - 1] + (levelExpTable[lv] || 0);
+    }
+
+    const form = document.getElementById('expForm');
+    const results = document.getElementById('results');
+    const resetBtn = document.getElementById('resetBtn');
+    const globalError = document.getElementById('globalError');
+
+    const inputs = {
+      cur: document.getElementById('currentLevel'),
+      curExp: document.getElementById('currentExp'),
+      tgt: document.getElementById('targetLevel'),
+      eph: document.getElementById('expPerHour'),
+      daily: document.getElementById('dailyBoosts'),
+      stone: document.getElementById('stoneBoosts')
+    };
+
+    const resultEls = {
+      noBoostRem: document.getElementById('noBoostRemaining'),
+      noBoostSec: document.getElementById('noBoostSeconds'),
+      noBoostFin: document.getElementById('noBoostFinishTime'),
+      noBoostCD: document.getElementById('noBoostCountdown'),
+      boostRem: document.getElementById('boostRemaining'),
+      boostSec: document.getElementById('boostSeconds'),
+      boostFin: document.getElementById('boostFinishTime'),
+      boostCD: document.getElementById('boostCountdown')
+    };
+
+    let noBoostTimer, boostTimer;
+
+    function validateAll() {
+      globalError.classList.remove('visible');
+      globalError.textContent = '';
+      Object.values(inputs).forEach(input => input.classList.remove('invalid'));
+
+      let errors = [];
+      Object.entries(inputs).forEach(([key, input]) => {
+        if (!input.checkValidity()) {
+          input.classList.add('invalid');
+          errors.push('請輸入有效的數值。');
+        }
+      });
+
+      if (Number(inputs.tgt.value) <= Number(inputs.cur.value)) {
+        inputs.tgt.classList.add('invalid');
+        errors.push('目標等級必須大於現在等級。');
+      }
+
+      if (errors.length > 0) {
+        globalError.textContent = errors[0];
+        globalError.classList.add('visible');
+        return false;
+      }
+      return true;
+    }
+
+    function tryCalculate() {
+      if (validateAll()) {
+        calculate();
+      } else {
+        results.classList.remove('visible');
+        clearInterval(noBoostTimer);
+        clearInterval(boostTimer);
+      }
+    }
+
+    Object.values(inputs).forEach(input => input.addEventListener('input', tryCalculate));
+
+    resetBtn.addEventListener('click', () => {
+      form.reset();
+      results.classList.remove('visible');
+      clearInterval(noBoostTimer);
+      clearInterval(boostTimer);
+      globalError.classList.remove('visible');
+      Object.values(inputs).forEach(el => el.classList.remove('invalid'));
+      tryCalculate();
+    });
+
+    function calculate() {
+      const v = {
+        curLv: Number(inputs.cur.value), curE: Number(inputs.curExp.value),
+        tgtLv: Number(inputs.tgt.value), rate: Number(inputs.eph.value),
+        daily: Number(inputs.daily.value), stone: Number(inputs.stone.value)
+      };
+
+      const totalNeed = prefixSum[v.tgtLv - 1] - prefixSum[v.curLv - 1];
+      let need = totalNeed - v.curE;
+      if (need <= 0) {
+        globalError.textContent = '恭喜！您已達到或超過目標等級。';
+        globalError.classList.add('visible');
+        results.classList.remove('visible');
+        return;
+      }
+
+      const totalExtraExp = (v.daily + v.stone) * (2 * v.rate);
+      let effectiveNeed = Math.max(0, need - totalExtraExp);
+      const noBoostSecs = need / (v.rate / 3600);
+      const boostSecs = effectiveNeed / (v.rate / 3600);
+      showResult(need, effectiveNeed, noBoostSecs, boostSecs);
+    }
+
+    function showResult(need, effectiveNeed, noBoostSecs, boostSecs) {
+      results.classList.add('visible');
+
+      const now = new Date();
+      const noBoostFinishAt = new Date(now.getTime() + noBoostSecs * 1000);
+      const boostFinishAt = new Date(now.getTime() + boostSecs * 1000);
+      const timeFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+
+      resultEls.noBoostRem.textContent = need.toLocaleString();
+      resultEls.noBoostSec.textContent = Math.round(noBoostSecs).toLocaleString();
+      resultEls.noBoostFin.textContent = noBoostFinishAt.toLocaleString('zh-TW', timeFormat);
+      resultEls.boostRem.textContent = effectiveNeed.toLocaleString();
+      resultEls.boostSec.textContent = Math.round(boostSecs).toLocaleString();
+      resultEls.boostFin.textContent = boostFinishAt.toLocaleString('zh-TW', timeFormat);
+
+      clearInterval(noBoostTimer);
+      clearInterval(boostTimer);
+      
+      const tick = (finishAt, el) => {
+        if (finishAt - Date.now() <= 0) {
+          el.textContent = '已完成!';
+          return false;
+        }
+        const s = Math.ceil((finishAt - Date.now()) / 1000);
+        el.textContent = `${Math.floor(s/3600)}h ${Math.floor(s%3600/60)}m ${s%60}s`;
+        return true;
+      };
+
+      if (tick(noBoostFinishAt, resultEls.noBoostCD)) {
+        noBoostTimer = setInterval(() => !tick(noBoostFinishAt, resultEls.noBoostCD) && clearInterval(noBoostTimer), 1000);
+      }
+      if (tick(boostFinishAt, resultEls.boostCD)) {
+        boostTimer = setInterval(() => !tick(boostFinishAt, resultEls.boostCD) && clearInterval(boostTimer), 1000);
+      }
+    }
+
+    tryCalculate();
+  </script>
+</body>
+</html>

@@ -11,13 +11,23 @@
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><defs><linearGradient id=%22bg%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 style=%22stop-color:%23667eea%22/><stop offset=%22100%25%22 style=%22stop-color:%23764ba2%22/></linearGradient></defs><rect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22url(%23bg)%22/><circle cx=%2216%22 cy=%2216%22 r=%228%22 fill=%22none%22 stroke=%22white%22 stroke-width=%222%22/><path d=%22M16 12v4l3 2%22 stroke=%22white%22 stroke-width=%222%22 stroke-linecap=%22round%22/></svg>">
+    
+    <!-- Meta Tags -->
+    <meta name="description" content="多人協作的實時倒計時工具，支援座標輸入和台灣時間顯示">
+    <meta name="keywords" content="倒計時,計時器,多人協作,實時同步,台灣時間">
+    <meta name="author" content="Countdown Timer App">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="多人協作倒計時工具">
+    <meta property="og:description" content="支援實時同步的座標倒計時管理工具">
+    <meta property="og:type" content="website">
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
             <h1>⏰ 多人協作倒計時工具</h1>
-            <p>輸入座標和時間，即時同步倒計時管理</p>
+            <p>輸入座標和時間，即時同步倒計時管理 🚀</p>
         </header>
 
         <!-- Main Content -->
@@ -69,7 +79,7 @@
                     <h3>📊 倒計時列表</h3>
                     <div class="connection-status">
                         <div class="status-indicator" id="connection-indicator"></div>
-                        <span id="connection-text">已連線</span>
+                        <span id="connection-text">連線中...</span>
                     </div>
                 </div>
                 
@@ -110,6 +120,11 @@
                 this.socket.on('disconnect', () => {
                     this.updateConnectionStatus(false);
                     console.log('❌ 與服務器斷開連接');
+                });
+
+                this.socket.on('connect_error', (error) => {
+                    this.updateConnectionStatus(false);
+                    console.error('🔌 連接錯誤:', error);
                 });
 
                 // 倒計時事件
@@ -197,12 +212,20 @@
                         }
                     });
                     
-                    // Enter 鍵提交
+                    // Enter 鍵快速提交
                     input.addEventListener('keypress', (e) => {
                         if (e.key === 'Enter') {
+                            e.preventDefault();
                             form.dispatchEvent(new Event('submit'));
                         }
                     });
+                });
+
+                // 頁面失焦時顯示通知
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && this.countdowns.length > 0) {
+                        console.log('📱 頁面已隱藏，倒計時繼續運行');
+                    }
                 });
             }
 
@@ -228,6 +251,12 @@
                     return;
                 }
 
+                // 檢查是否已連接
+                if (!this.socket.connected) {
+                    this.showError('❌ 與服務器斷開連接，請稍後重試');
+                    return;
+                }
+
                 // 發送到服務器
                 this.socket.emit('add-countdown', { x, y, minutes, seconds });
 
@@ -239,6 +268,10 @@
             }
 
             removeCountdown(id) {
+                if (!this.socket.connected) {
+                    this.showError('❌ 與服務器斷開連接');
+                    return;
+                }
                 this.socket.emit('remove-countdown', { id });
             }
 
@@ -387,6 +420,13 @@
             console.log('🎯 正在初始化多人協作倒計時工具...');
             window.countdownManager = new CountdownManager();
         });
+
+        // PWA 支援
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                console.log('🔧 Service Worker 支援已檢測');
+            });
+        }
     </script>
 </body>
 </html>

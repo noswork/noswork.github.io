@@ -8,8 +8,8 @@
       "dev": "nodemon server.js"
     },
     "engines": {
-      "node": ">=16.0.0",
-      "npm": ">=7.0.0"
+      "node": ">=18.0.0",
+      "npm": ">=8.0.0"
     },
     "dependencies": {
       "express": "^4.18.2",
@@ -25,7 +25,8 @@
       "realtime",
       "collaboration",
       "websocket",
-      "taiwan-time"
+      "taiwan-time",
+      "railway"
     ],
     "author": "Your Name",
     "license": "MIT",

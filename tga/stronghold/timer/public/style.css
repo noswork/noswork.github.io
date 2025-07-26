@@ -409,6 +409,10 @@ body {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
     .content {
         grid-template-columns: 1fr;
     }
@@ -428,6 +432,10 @@ body {
     
     .header p {
         font-size: 1rem;
+    }
+    
+    .countdown-list {
+        max-height: 50vh;
     }
 }
 

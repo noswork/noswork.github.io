@@ -158,13 +158,15 @@ app.get('/health', (req, res) => {
     status: 'ok', 
     timestamp: new Date().toISOString(),
     activeCountdowns: countdownItems.length,
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    timezone: 'Asia/Taipei'
   });
 });
 
-// 啟動服務器
+// 啟動服務器 - Railway 兼容
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 多人協作倒計時工具運行在端口 ${PORT}`);
   console.log(`📅 服務器時間: ${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
+  console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
 });

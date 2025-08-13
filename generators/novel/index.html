@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>小說生成器 — 微小說（≤500字）</title>
+  <meta name="description" content="微小說生成器：主題 × 風格 × 關鍵字，AI/本地雙模，輸出不超過500字。" />
+  <link rel="stylesheet" href="novel.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>小說生成器 Micro Novel</h1>
+          <small>主題 × 風格 × 關鍵字 × 微篇幅（≤500字）</small>
+        </div>
+      </div>
+      <div class="switches">
+        <div class="switch">
+          <details id="aiDetails">
+            <summary>AI 模式</summary>
+            <div class="popover">
+              <div class="row-compact">
+                <div class="switch"><input type="checkbox" id="aiEnabled" /><label for="aiEnabled">啟用 AI</label></div>
+                <div>
+                  <label>API Key</label>
+                  <input id="apiKey" type="password" placeholder="sk-****************" />
+                </div>
+                <details class="more">
+                  <summary>更多設定</summary>
+                  <div class="grid-2">
+                    <div>
+                      <label>API Base URL</label>
+                      <input id="apiBase" type="text" value="https://api.openai.com/v1" />
+                    </div>
+                    <div>
+                      <label>Model</label>
+                      <input id="apiModel" type="text" value="gpt-4o-mini" />
+                    </div>
+                    <div>
+                      <label>創意度（temperature）</label>
+                      <input id="aiTemp" type="range" min="0" max="100" value="65" />
+                    </div>
+                    <div>
+                      <label>去重</label>
+                      <select id="aiDedupe">
+                        <option value="soft">適度</option>
+                        <option value="strict">嚴格</option>
+                        <option value="off">關閉</option>
+                      </select>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </details>
+        </div>
+        <div class="switch">
+          <details id="adultDetails">
+            <summary>成人模式</summary>
+            <div class="popover">
+              <div class="switch"><input type="checkbox" id="adultOn" /><label for="adultOn">啟用成人模式（18+）</label></div>
+              <div class="switch"><input type="checkbox" id="adultFull" /><label for="adultFull">火力全開（最露骨）</label></div>
+            </div>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div id="panel" class="panel">
+        <div class="controls">
+          <div class="col-6">
+            <label>主題分類</label>
+            <select id="theme">
+              <option value="random">隨機</option>
+              <option value="custom">自定義</option>
+              <option value="懸疑">懸疑</option>
+              <option value="科幻">科幻</option>
+              <option value="奇幻">奇幻</option>
+              <option value="都市">都市</option>
+              <option value="愛情">愛情</option>
+              <option value="歷史">歷史</option>
+              <option value="校園">校園</option>
+              <option value="黑色幽默">黑色幽默</option>
+              <option value="反轉">反轉</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label>自訂主題（選「自定義」後可輸入）</label>
+            <input id="themeCustom" type="text" placeholder="例如：末班車、雨夜、告別、AI 審判" disabled />
+          </div>
+          <div class="col-6">
+            <label>關鍵字（名詞）</label>
+            <input id="keyword" type="text" placeholder="例如：車票、錄音筆、舊照片、口香糖" />
+          </div>
+          <div class="col-6">
+            <label>風格</label>
+            <select id="style">
+              <option value="正常">正常</option>
+              <option value="custom">自定義</option>
+              <option value="極簡">極簡</option>
+              <option value="詩意">詩意</option>
+              <option value="黑色幽默">黑色幽默</option>
+              <option value="日常寫實">日常寫實</option>
+              <option value="反轉結尾">反轉結尾</option>
+            </select>
+          </div>
+          <div class="col-6">
+            <label>自定義風格（選「自定義」後可輸入）</label>
+            <input id="styleCustom" type="text" placeholder="例如：台式冷面、輕科幻、極致留白" disabled />
+          </div>
+          <div class="col-6">
+            <label>長度上限</label>
+            <input id="maxLen" type="number" min="50" max="500" value="300" />
+            <small class="muted">字數上限，最多 500 字</small>
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn-primary" id="btn-gen">生成文字</button>
+          <button id="btn-rand">隨機設定</button>
+          <details class="switch">
+            <summary>潤色</summary>
+            <div class="popover">
+              <div class="row-compact">
+                <label>上傳要潤色的文本（txt）或直接貼上</label>
+                <input id="polishFile" type="file" accept="text/plain" />
+                <textarea id="polishInput" placeholder="在此貼上要潤色的文本"></textarea>
+                <button id="btn-polish">開始潤色</button>
+              </div>
+            </div>
+          </details>
+          <button id="btn-clear">清空</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="card">
+        <div class="monitor" aria-live="polite">
+          <div class="monitor-top" aria-hidden="true">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="screen">
+            <pre id="output" class="screen-content"></pre>
+          </div>
+        </div>
+        <div class="btns" style="margin-top:10px">
+          <button class="btn-copy" id="btn-copy-all">一鍵複製</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">已複製</div>
+  </div>
+
+  <script type="module">
+    import { buildSystemPromptFromState } from './prompts.js';
+    import { typeLines } from './novel.js';
+
+    // 基礎工具
+    const $ = (sel)=>document.querySelector(sel);
+    const byId=(id)=>document.getElementById(id);
+    const toast = (msg)=>{const t=byId('toast');t.textContent=msg;t.classList.remove('spinner');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1200)}
+    const toastLoading=(msg)=>{const t=byId('toast');t.textContent=msg;t.classList.add('show','spinner');};
+    const toastDone=()=>{const t=byId('toast');t.classList.remove('spinner');setTimeout(()=>t.classList.remove('show'),400)};
+    const setLocal=(k,v)=>{ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+    const getLocal=(k, def=null)=>{ try{ const v=localStorage.getItem(k); return v? JSON.parse(v): def; }catch(e){ return def; } };
+    const rand=(n)=>Math.floor(Math.random()*n);
+
+    // 標點修復
+    const normalizePunctuation = (s)=>{
+      if(!s) return s;
+      let out = s.replace(/!/g,'！').replace(/\?/g,'？').replace(/,/g,'，').replace(/;/g,'；');
+      out = out.replace(/\.(?=\s|$)/g,'。');
+      out = out.replace(/\s+([，。；！？])/g,'$1');
+      const trimmed = out.trim();
+      if(trimmed && !/[。！？!]$/.test(trimmed)) out = trimmed + '。';
+      return out;
+    };
+
+    // 移除 AI 思考過程/隱藏內容（<think>、<analysis> 等）
+    const stripInternalThoughts = (s)=>{
+      if(!s) return s;
+      let out = s;
+      const blockTags = ["think","analysis","reflection","reasoning","chain_of_thought","cot"];
+      for(const tag of blockTags){
+        const re = new RegExp(`<${tag}[^>]*>[\s\S]*?<\/${tag}>`, 'gi');
+        out = out.replace(re, '');
+      }
+      // 三引號代碼塊中標示的思考/分析
+      out = out.replace(/```(?:thought|analysis|reasoning|think)[\s\S]*?```/gi, '');
+      // 行首的「思考/分析/推理」等提示
+      out = out.replace(/^\s*(?:思考過程|思考|分析|推理)[:：][\s\S]*$/gmi, '');
+      // 殘留的單獨閉合或開啟標籤
+      out = out.replace(/<\/?(?:think|analysis|reflection|reasoning|cot)[^>]*>/gi, '');
+      return out.trim();
+    };
+
+    // 本地生成：簡易模板微小說（≤100字）
+    const LEX = {
+      NOUN: ["雨夜","末班車","月台","舊樓","口香糖","錄音筆","口袋","信封","樓梯間","老照片","紅傘","通知單","抽屜","鏡子","便條紙","盲盒","密碼鎖","公車站"],
+      VERB: ["遺落","折返","對齊","藏起","對換","延後","取消","覆寫","補票","重啟","暫停","續命","倒帶","闖入","封存"],
+      ADJ: ["潮濕","慌張","輕微","緩慢","模糊","微亮","陌生","安靜","吵鬧","單純","肅靜"]
+    };
+    const TPL = [
+      "{ADJ}的{NOUN}裡，他把{NOUN}{VERB}，說是安排，其實是遇見。",
+      "我們在{NOUN}交換名字，換完才發現彼此都沒帶過去。",
+      "{NOUN}響了三次，他沒接，故事卻自己{VERB}了。",
+      "她把{NOUN}塞進口袋，口袋把夜色塞回來。",
+      "{NOUN}寫著明天，他說今天先用，明天會懂事。",
+      "電車晚{NOUN}一站，乘客早{VERB}一段。",
+      "{ADJ}的消息抵達，我們的關係剛好延遲到心裡。",
+      "我把{NOUN}{VERB}，像把舊世界挪到下一行，然後假裝它一直在那裡。",
+      "她說別等，{NOUN}會等我們；我說好，於是我們一起學會{VERB}。"
+    ];
+    const pick=(arr)=>arr[rand(arr.length)];
+    const replaceSmart=(tpl)=> tpl.replace(/\{(\w+)\}/g,(_,k)=> pick(LEX[k]||['']));
+    function genLocalText(maxlen){
+      let s = replaceSmart(pick(TPL));
+      if(s.length>maxlen) s = s.slice(0, Math.max(0,maxlen-1)) + '。';
+      return normalizePunctuation(s);
+    }
+
+    // AI 生成（使用主輸入欄位）
+    async function genAI(){
+      const base = byId('apiBase').value.trim() || 'https://api.openai.com/v1';
+      const key = byId('apiKey').value.trim();
+      const model = byId('apiModel').value.trim() || 'gpt-4o-mini';
+      if(!key){ toast('請輸入 API Key'); return; }
+
+      const themeSel = byId('theme').value;
+      const theme = (themeSel==='custom'? (byId('themeCustom').value.trim()||'') : (themeSel==='random'? '' : themeSel));
+      const kw = byId('keyword').value.trim();
+      const styleSel = byId('style').value;
+      const styleText = (styleSel==='custom'? (byId('styleCustom').value.trim()||'') : (styleSel!=='正常'? styleSel : ''));
+      const maxLen = Math.min(500, Math.max(50, parseInt(byId('maxLen').value||'300',10)));
+      const temp = Math.max(0, Math.min(1, parseInt(byId('aiTemp').value||'65',10)/100));
+      const dedupeMode = byId('aiDedupe').value;
+
+      // 持久化
+      setLocal('NOVEL__base', base);
+      setLocal('NOVEL__model', model);
+      setLocal('NOVEL__key', key);
+      setLocal('NOVEL__aiEnabled', byId('aiEnabled').checked);
+
+      const adultOn = byId('adultOn').checked;
+      const adultFull = byId('adultFull').checked;
+      const sys = buildSystemPromptFromState({ theme, styleText, maxLen, adultOn, adultFull });
+      const user = `主題：${theme||'（不限）'}；關鍵字：${kw||'（無）'}；請寫一段不超過 ${maxLen} 字的微小說，自然融入主題與關鍵字，單段輸出，禁止列點/編號/引號/括號與多餘前綴。`;
+
+      const payload = { model, temperature: temp, n:1, max_tokens: 800, messages:[ {role:'system', content: sys}, {role:'user', content:user} ] };
+      const res = await fetch(`${base.replace(/\/$/,'')}/chat/completions`,{ method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`}, body: JSON.stringify(payload) });
+      if(!res.ok){ const t=await res.text(); throw new Error(`API 錯誤：${res.status} ${t}`); }
+      const json = await res.json();
+      let content = json.choices?.[0]?.message?.content || '';
+      // 清理、裁切、標點
+      content = content.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).join(' ');
+      content = stripInternalThoughts(content);
+      content = content.replace(/^[-•\d]+\s*/, '').replace(/^([「“"'])(.*)([」”"'])$/, '$2');
+      // 限長（以字元粗略裁切）
+      if(content.length>maxLen) content = content.slice(0, maxLen);
+      content = normalizePunctuation(content);
+      return content;
+    }
+
+    // 自定義輸入 enable/disable
+    function refreshStates(){
+      const themeSel = byId('theme').value; byId('themeCustom').disabled = themeSel !== 'custom';
+      const styleSel = byId('style').value; byId('styleCustom').disabled = styleSel !== 'custom';
+    }
+    byId('theme').addEventListener('change', refreshStates);
+    byId('style').addEventListener('change', refreshStates);
+    refreshStates();
+
+    // 生成/隨機/清空
+    byId('btn-gen').addEventListener('click', async ()=>{
+      const aiOn = byId('aiEnabled').checked;
+      if(!aiOn){ toast('請先啟用 AI 模式'); return; }
+      try{
+        toastLoading('生成中...');
+        const text = await genAI();
+        await typeLines(byId('output'), [text], 12, 0);
+        toastDone();
+      }catch(e){ console.error(e); toast('生成失敗'); toastDone(); }
+    });
+    byId('btn-rand').addEventListener('click', ()=>{
+      const themes = ['懸疑','科幻','奇幻','都市','愛情','歷史','校園','黑色幽默','反轉'];
+      byId('theme').value = Math.random()<0.8 ? themes[rand(themes.length)] : 'custom';
+      byId('themeCustom').value = Math.random()<0.3 ? ['雨夜告別','最後一班車','測謊器','回收站'][rand(4)] : '';
+      const styles = ['正常','極簡','詩意','黑色幽默','日常寫實','反轉結尾'];
+      byId('style').value = styles[rand(styles.length)];
+      byId('styleCustom').value = '';
+      byId('keyword').value = Math.random()<0.7 ? ['口香糖','錄音筆','舊照片','口袋','車票'][rand(5)] : '';
+      refreshStates();
+      toast('已隨機調好配方');
+    });
+    byId('btn-clear').addEventListener('click', ()=>{ byId('output').textContent=''; });
+    byId('polishFile').addEventListener('change', async (e)=>{
+      const f = e.target.files?.[0]; if(!f) return;
+      try{ const t = await f.text(); byId('polishInput').value = (t||'').slice(0, 2000); toast('已載入檔案'); }catch(err){ toast('讀取失敗'); }
+    });
+    byId('btn-polish').addEventListener('click', async ()=>{
+      const pasted = byId('polishInput').value.trim();
+      const original = byId('output').textContent.trim();
+      const text = pasted || original;
+      if(!text){ toast('沒有內容可潤色'); return; }
+      if(!byId('aiEnabled').checked){ toast('請啟用 AI 模式以使用潤色'); return; }
+      const base = byId('apiBase').value.trim() || 'https://api.openai.com/v1';
+      const key = byId('apiKey').value.trim();
+      const model = byId('apiModel').value.trim() || 'gpt-4o-mini';
+      if(!key){ toast('請輸入 API Key'); return; }
+      const maxLen = Math.min(500, Math.max(50, parseInt(byId('maxLen').value||'300',10)));
+      const styleSel = byId('style').value;
+      const styleText = (styleSel==='custom'? (byId('styleCustom').value.trim()||'') : (styleSel!=='正常'? styleSel : ''));
+      const adultOn = byId('adultOn').checked;
+      const sys = `你是一位中文微小說文字編輯。請在不改變情節核心的前提下，將輸入文本潤色為更有節奏與畫面感的單段微小說，字數不超過 ${maxLen}，風格偏向「${styleText||'正常'}」${adultOn?'，可保留成人向基調':''}。禁止列點、編號、引號與括號，輸出單段文字。`;
+      const user = `原文：${text}`;
+      const payload = { model, temperature: 0.5, n:1, max_tokens: 800, messages:[ {role:'system', content: sys}, {role:'user', content:user} ] };
+      try{
+        const res = await fetch(`${base.replace(/\/$/,'')}/chat/completions`,{ method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`}, body: JSON.stringify(payload) });
+        if(!res.ok){ const t=await res.text(); throw new Error(`API 錯誤：${res.status} ${t}`); }
+        const json = await res.json();
+        let content = json.choices?.[0]?.message?.content || '';
+        content = content.split(/\r?\n/).map(s=>s.trim()).filter(Boolean).join(' ');
+        content = stripInternalThoughts(content);
+        content = content.replace(/^[-•\d]+\s*/, '').replace(/^([「“"'])(.*)([」”"'])$/, '$2');
+        if(content.length>maxLen) content = content.slice(0, maxLen);
+        await typeLines(byId('output'), [content], 12, 0);
+      }catch(e){ console.error(e); toast('潤色失敗'); }
+    });
+    byId('btn-copy-all').addEventListener('click', async ()=>{
+      const text = byId('output').textContent.trim(); if(!text){ toast('沒有內容可複製'); return; }
+      try{ await navigator.clipboard.writeText(text); toast('已複製到剪貼簿'); }catch(e){ toast('複製失敗'); }
+    });
+
+    // 設定持久化
+    ;['apiBase','apiModel','apiKey'].forEach(id=>{
+      const el = byId(id); if(!el) return; el.addEventListener('input', ()=>{
+        setLocal(`NOVEL__${id.replace('api','').toLowerCase()}`, (el.value||'').trim());
+      });
+    });
+    const aiEnabledEl = byId('aiEnabled'); if(aiEnabledEl) aiEnabledEl.addEventListener('change', e=> setLocal('NOVEL__aiEnabled', !!e.target.checked));
+
+    // Console 調試：輸出提示詞
+    window.nvPrompt = (overrides={})=>{
+      const themeSel = overrides.themeSel || byId('theme').value;
+      const theme = overrides.theme != null ? overrides.theme : (themeSel==='custom'? (byId('themeCustom').value.trim()||'') : (themeSel==='random'? '' : themeSel));
+      const styleSel = overrides.styleSel || byId('style').value;
+      const styleText = overrides.style != null ? overrides.style : (styleSel==='custom'? (byId('styleCustom').value.trim()||'') : (styleSel!=='正常'? styleSel : ''));
+      const maxLen = overrides.maxLen || Math.min(500, Math.max(50, parseInt(byId('maxLen').value||'300',10)));
+      const adultOn2 = byId('adultOn').checked;
+      const adultFull2 = byId('adultFull').checked;
+      const sys = buildSystemPromptFromState({ theme, styleText, maxLen, adultOn: adultOn2, adultFull: adultFull2 });
+      const kw = overrides.kw != null ? overrides.kw : (byId('keyword').value.trim());
+      const user = `主題：${theme||'（不限）'}；關鍵字：${kw||'（無）'}；請寫一段不超過 ${maxLen} 字的微小說，自然融入主題與關鍵字，單段輸出，禁止列點/編號/引號/括號與多餘前綴。`;
+      console.log('[System Prompt]\n'+sys+'\n\n[User Prompt]\n'+user);
+      return { system: sys, user };
+    };
+
+    // 點擊主頁面時關閉所有小視窗；僅允許同時開一個
+    const detailEls = [byId('aiDetails'), byId('adultDetails')].filter(Boolean);
+    function closeAllDetails(){ detailEls.forEach(d=>{ if(d && d.open) d.open=false; }); }
+    document.addEventListener('click', (e)=>{
+      const within = e.target.closest && e.target.closest('details');
+      if(!within) closeAllDetails();
+      const opened = detailEls.filter(d=>d && d.open);
+      if(opened.length>1){ opened.slice(1).forEach(d=> d.open=false); }
+    });
+
+    // 初始化：載入 localStorage
+    (function init(){
+      const savedBase = getLocal('NOVEL__base', 'https://api.openai.com/v1'); if(savedBase) byId('apiBase').value = savedBase;
+      const savedModel = getLocal('NOVEL__model', 'gpt-4o-mini'); if(savedModel) byId('apiModel').value = savedModel;
+      const savedKey = getLocal('NOVEL__key', ''); if(typeof savedKey==='string') byId('apiKey').value = savedKey;
+      const savedEnable = getLocal('NOVEL__aiEnabled', false); byId('aiEnabled').checked = !!savedEnable;
+      // 初始不自動生成，等待使用者操作
+      byId('output').textContent = '';
+    })();
+  </script>
+</body>
+</html>
+
+

@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>杖劍傳說升級經驗計算器｜nos</title>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <style>
     :root {
       --primary: #007bff;
@@ -210,30 +211,36 @@
 <body>
   <main class="main-container">
     <div class="form-container">
-      <h2>杖劍傳說升級經驗計算器</h2>
+      <h2 id="pageTitle">杖劍傳說升級經驗計算器</h2>
+      <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+        <select id="langSelect" aria-label="切換語言" style="padding:6px 8px; border:1px solid #ced4da; border-radius:6px;">
+          <option value="zh-TW">繁體中文</option>
+          <option value="ja-JP">日本語</option>
+        </select>
+      </div>
       <form id="expForm" novalidate>
         <div class="form-group">
-          <label for="currentLevel">現在等級</label>
+          <label for="currentLevel" id="labelCurrentLevel">現在等級</label>
           <input id="currentLevel" type="number" min="1" max="183" value="1" required>
         </div>
         <div class="form-group">
-          <label for="currentExp">現有經驗</label>
+          <label for="currentExp" id="labelCurrentExp">現有經驗</label>
           <input id="currentExp" type="number" min="0" value="0" required>
         </div>
         <div class="form-group">
-          <label for="targetLevel">目標等級</label>
+          <label for="targetLevel" id="labelTargetLevel">目標等級</label>
           <input id="targetLevel" type="number" min="1" max="183" value="100" required>
         </div>
         <div class="form-group">
-          <label for="expPerHour">每小時經驗</label>
+          <label for="expPerHour" id="labelExpPerHour">每小時經驗</label>
           <input id="expPerHour" type="number" min="1" value="20000" required>
         </div>
         <div class="form-group">
-          <label for="dailyBoosts">日常加速次數</label>
+          <label for="dailyBoosts" id="labelDailyBoosts">日常加速次數</label>
           <input id="dailyBoosts" type="number" min="0" value="0" required>
         </div>
         <div class="form-group">
-          <label for="stoneBoosts">時間結晶次數</label>
+          <label for="stoneBoosts" id="labelStoneBoosts">時間結晶次數</label>
           <input id="stoneBoosts" type="number" min="0" value="0" required>
         </div>
         <div class="error-msg" id="globalError"></div>
@@ -247,18 +254,18 @@
     <section id="results" class="results-container">
       <div class="results-grid">
         <div class="result-column">
-          <h3>無加速</h3>
-          <p>剩餘經驗值:<span id="noBoostRemaining"></span></p>
-          <p>所需秒數:<span id="noBoostSeconds"></span></p>
-          <p>預計完成時間:<span id="noBoostFinishTime"></span></p>
-          <p>剩餘時間:<span id="noBoostCountdown"></span></p>
+          <h3 id="hNoBoost">無加速</h3>
+          <p><span id="labelRemainingExp">剩餘經驗值:</span><span id="noBoostRemaining"></span></p>
+          <p><span id="labelNeedSeconds">所需秒數:</span><span id="noBoostSeconds"></span></p>
+          <p><span id="labelFinishTime">預計完成時間:</span><span id="noBoostFinishTime"></span></p>
+          <p><span id="labelCountdown">剩餘時間:</span><span id="noBoostCountdown"></span></p>
         </div>
         <div class="result-column">
-          <h3>有加速</h3>
-          <p>剩餘經驗值:<span id="boostRemaining"></span></p>
-          <p>所需秒數:<span id="boostSeconds"></span></p>
-          <p>預計完成時間:<span id="boostFinishTime"></span></p>
-          <p>剩餘時間:<span id="boostCountdown"></span></p>
+          <h3 id="hBoost">有加速</h3>
+          <p><span id="labelRemainingExp2">剩餘經驗值:</span><span id="boostRemaining"></span></p>
+          <p><span id="labelNeedSeconds2">所需秒數:</span><span id="boostSeconds"></span></p>
+          <p><span id="labelFinishTime2">預計完成時間:</span><span id="boostFinishTime"></span></p>
+          <p><span id="labelCountdown2">剩餘時間:</span><span id="boostCountdown"></span></p>
         </div>
       </div>
     </section>
@@ -491,7 +498,9 @@
     // 前往星象計算（把目標等級帶去當預計角色等級）
     document.getElementById('goSptcalBtn').addEventListener('click', () => {
       const planned = Number(inputs.tgt.value) || 1;
-      const url = `/tlotsas/sptcal/index.html?plannedLevel=${encodeURIComponent(Math.round(planned))}`;
+      const langSel = document.getElementById('langSelect');
+      const lang = langSel ? langSel.value : 'zh-TW';
+      const url = `/tlotsas/sptcal/index.html?plannedLevel=${encodeURIComponent(Math.round(planned))}&lang=${encodeURIComponent(lang)}`;
       window.location.href = url;
     });
 
@@ -555,6 +564,77 @@
     }
 
     tryCalculate();
+
+    // i18n
+    let I18N = null;
+    let currentLang = 'zh-TW';
+
+    const t = (path) => {
+      if (!I18N) return '';
+      const langObj = I18N[currentLang] || I18N['zh-TW'];
+      return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : null), langObj) || '';
+    };
+
+    const applyI18nTexts = () => {
+      document.getElementById('pageTitle').textContent = t('lvcal.title') || '杖劍傳說升級經驗計算器';
+      document.title = `${t('lvcal.title') || '杖劍傳說升級經驗計算器'}｜nos`;
+      document.getElementById('labelCurrentLevel').textContent = t('lvcal.labels.currentLevel') || '現在等級';
+      document.getElementById('labelCurrentExp').textContent = t('lvcal.labels.currentExp') || '現有經驗';
+      document.getElementById('labelTargetLevel').textContent = t('lvcal.labels.targetLevel') || '目標等級';
+      document.getElementById('labelExpPerHour').textContent = t('lvcal.labels.expPerHour') || '每小時經驗';
+      document.getElementById('labelDailyBoosts').textContent = t('lvcal.labels.dailyBoosts') || '日常加速次數';
+      document.getElementById('labelStoneBoosts').textContent = t('lvcal.labels.stoneBoosts') || '時間結晶次數';
+      document.getElementById('resetBtn').textContent = t('lvcal.buttons.reset') || '重置';
+      document.getElementById('goSptcalBtn').textContent = t('lvcal.buttons.toSptCal') || '前往星象計算';
+      document.getElementById('hNoBoost').textContent = t('lvcal.results.noBoost') || '無加速';
+      document.getElementById('hBoost').textContent = t('lvcal.results.boost') || '有加速';
+      document.getElementById('labelRemainingExp').textContent = t('lvcal.results.remainingExp') || '剩餘經驗值:';
+      document.getElementById('labelNeedSeconds').textContent = t('lvcal.results.needSeconds') || '所需秒數:';
+      document.getElementById('labelFinishTime').textContent = t('lvcal.results.finishTime') || '預計完成時間:';
+      document.getElementById('labelCountdown').textContent = t('lvcal.results.countdown') || '剩餘時間:';
+      document.getElementById('labelRemainingExp2').textContent = t('lvcal.results.remainingExp') || '剩餘經驗值:';
+      document.getElementById('labelNeedSeconds2').textContent = t('lvcal.results.needSeconds') || '所需秒數:';
+      document.getElementById('labelFinishTime2').textContent = t('lvcal.results.finishTime') || '預計完成時間:';
+      document.getElementById('labelCountdown2').textContent = t('lvcal.results.countdown') || '剩餘時間:';
+    };
+
+    const detectInitialLang = () => {
+      const sp = new URLSearchParams(window.location.search);
+      const qLang = sp.get('lang');
+      const saved = localStorage.getItem('tlotsas_lang');
+      const lang = qLang || saved || 'zh-TW';
+      currentLang = (lang === 'ja-JP') ? 'ja-JP' : 'zh-TW';
+      const sel = document.getElementById('langSelect');
+      if (sel) sel.value = currentLang;
+    };
+
+    const loadI18n = async () => {
+      try {
+        const res = await fetch('/tlotsas/i18n.yaml');
+        const txt = await res.text();
+        I18N = jsyaml.load(txt);
+      } catch (e) {
+        console.error('i18n load failed', e);
+      }
+    };
+
+    const setLang = (lang) => {
+      currentLang = (lang === 'ja-JP') ? 'ja-JP' : 'zh-TW';
+      localStorage.setItem('tlotsas_lang', currentLang);
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', currentLang);
+      window.history.replaceState({}, '', url);
+      applyI18nTexts();
+    };
+
+    (async function initI18n(){
+      detectInitialLang();
+      await loadI18n();
+      applyI18nTexts();
+    })();
+
+    const langSel = document.getElementById('langSelect');
+    if (langSel) langSel.addEventListener('change', (e) => setLang(e.target.value));
   </script>
 </body>
 </html>

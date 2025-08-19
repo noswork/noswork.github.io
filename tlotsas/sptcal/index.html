@@ -6,18 +6,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>星象合約－原初之星計算｜nos</title>
+  <script>
+    (function(){
+      try {
+        const saved = localStorage.getItem('tlotsas_theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+      } catch (e) {}
+    })();
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' };
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
 </head>
-<body class="min-h-screen bg-gray-100 text-gray-800">
+<body class="min-h-screen bg-gray-100 text-gray-800 dark:bg-slate-900 dark:text-slate-100">
   <main class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-3xl bg-white rounded-lg shadow-xl p-5 sm:p-6 md:p-8">
+    <div class="w-full max-w-3xl bg-white dark:bg-slate-800 rounded-lg shadow-xl p-5 sm:p-6 md:p-8">
       <section class="flex flex-col gap-4">
-        <h2 id="pageTitle" class="text-center text-2xl font-semibold text-blue-600">星象合約－原初之星計算</h2>
+        <h2 id="pageTitle" class="text-center text-2xl font-semibold text-blue-600 dark:text-blue-400">星象合約－原初之星計算</h2>
 
-        <div class="flex justify-end">
+        <div class="flex items-center justify-between gap-2">
+          <button id="themeToggle" type="button" aria-label="切換主題" aria-pressed="false" tabindex="0" title="切換淺色/深色"
+                  class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-100 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500">
+            🌙 深色
+          </button>
           <label class="sr-only" for="langSelect">Language</label>
-          <select id="langSelect" class="px-2 py-1 rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400" aria-label="切換語言">
+          <select id="langSelect" class="px-2 py-1 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 dark:text-slate-100" aria-label="切換語言">
             <option value="zh-TW">繁體中文</option>
             <option value="ja-JP">日本語</option>
           </select>
@@ -25,74 +42,100 @@
 
         <form id="astroForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4" novalidate>
           <label for="plannedLevel" class="flex flex-col gap-1" tabindex="0" aria-label="預計角色等級輸入區塊">
-            <span id="labelPlannedLevel" class="text-sm text-gray-600">預計角色等級</span>
+            <span id="labelPlannedLevel" class="text-sm text-gray-600 dark:text-slate-300">預計角色等級</span>
             <input id="plannedLevel" type="number" inputmode="numeric" min="1" step="1" value="100" required
-                   class="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400" />
+                   class="px-3 py-2 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500" />
           </label>
 
           <label for="targetAstro" class="flex flex-col gap-1" tabindex="0" aria-label="目標星象等級輸入區塊">
-            <span id="labelTargetAstro" class="text-sm text-gray-600">目標原初之星等級</span>
+            <span id="labelTargetAstro" class="text-sm text-gray-600 dark:text-slate-300">目標原初之星等級</span>
             <input id="targetAstro" type="number" inputmode="numeric" min="1" step="1" value="10" required
-                   class="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400" />
+                   class="px-3 py-2 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500" />
           </label>
         </form>
 
-        <div id="errorBox" class="hidden text-center text-red-600 text-sm font-medium"></div>
+        <div id="errorBox" class="hidden text-center text-red-600 dark:text-red-400 text-sm font-medium"></div>
 
         <section id="results" class="opacity-0 transition-opacity duration-300">
           <div class="overflow-x-auto">
-            <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
-              <thead class="bg-gray-50">
+            <table class="min-w-full border border-gray-200 dark:border-slate-700 rounded-md overflow-hidden bg-white dark:bg-slate-800">
+              <thead class="bg-gray-50 dark:bg-slate-700">
                 <tr>
-                  <th id="thItem" class="px-3 py-2 text-left text-sm font-semibold text-gray-700 border-b">項目</th>
-                  <th id="thLevel" class="px-3 py-2 text-right text-sm font-semibold text-gray-700 border-b">等級</th>
-                  <th id="thScore" class="px-3 py-2 text-right text-sm font-semibold text-gray-700 border-b">積分</th>
-                  <th id="thEquip" class="px-3 py-2 text-left text-sm font-semibold text-gray-700 border-b">裝備</th>
+                  <th id="thItem" class="px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-slate-200 border-b dark:border-slate-600">項目</th>
+                  <th id="thLevel" class="px-3 py-2 text-right text-sm font-semibold text-gray-700 dark:text-slate-200 border-b dark:border-slate-600">等級</th>
+                  <th id="thScore" class="px-3 py-2 text-right text-sm font-semibold text-gray-700 dark:text-slate-200 border-b dark:border-slate-600">積分</th>
+                  <th id="thEquip" class="px-3 py-2 text-left text-sm font-semibold text-gray-700 dark:text-slate-200 border-b dark:border-slate-600">裝備</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
+              <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
                 <tr>
-                  <td class="px-3 py-2 text-gray-700"><span id="rowRole">角色等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="roleLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowRole">角色等級</span></td>
+                  <td class="px-3 py-2 text-right"><span id="roleLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
                   <td class="px-3 py-2 text-right"><span id="roleScore" class="font-semibold">-</span></td>
-                  <td class="px-3 py-2"><span id="labelEquipNeedScore" class="text-gray-500">裝備所需積分：</span><span id="needScore" class="font-semibold text-emerald-600">-</span></td>
+                  <td class="px-3 py-2"><span id="labelEquipNeedScore" class="text-gray-500 dark:text-slate-400">裝備所需積分：</span><span id="needScore" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
-                  <td class="px-3 py-2 text-gray-700"><span id="rowSkill">技能等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="skillLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowSkill">技能等級</span></td>
+                  <td class="px-3 py-2 text-right"><span id="skillLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
                   <td class="px-3 py-2 text-right"><span id="skillScore" class="font-semibold">-</span></td>
-                  <td class="px-3 py-2"><span id="labelEquipNeedLevel" class="text-gray-500">裝備所需等級：</span><span id="needLevel" class="font-semibold text-emerald-600">-</span></td>
+                  <td class="px-3 py-2"><span id="labelEquipNeedLevel" class="text-gray-500 dark:text-slate-400">裝備所需等級：</span><span id="needLevel" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
-                  <td class="px-3 py-2 text-gray-700"><span id="rowRelic">遺物等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="relicLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowRelic">遺物等級</span></td>
+                  <td class="px-3 py-2 text-right"><span id="relicLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
                   <td class="px-3 py-2 text-right"><span id="relicScore" class="font-semibold">-</span></td>
-                  <td class="px-3 py-2"><span id="labelAvgPartLevel" class="text-gray-500">部位平均等級：</span><span id="avgPartLevel" class="font-semibold text-emerald-600">-</span></td>
+                  <td class="px-3 py-2"><span id="labelAvgPartLevel" class="text-gray-500 dark:text-slate-400">部位平均等級：</span><span id="avgPartLevel" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
-                  <td class="px-3 py-2 text-gray-700"><span id="rowPet">幻獸等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="petLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowPet">幻獸等級</span></td>
+                  <td class="px-3 py-2 text-right"><span id="petLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
                   <td class="px-3 py-2 text-right"><span id="petScore" class="font-semibold">-</span></td>
-                  <td class="px-3 py-2 text-gray-400">—</td>
+                  <td class="px-3 py-2 text-gray-400 dark:text-slate-500">—</td>
                 </tr>
-                <tr class="bg-gray-50">
-                  <td class="px-3 py-2 text-gray-900 font-semibold"><span id="rowTotal">四項分</span></td>
-                  <td class="px-3 py-2 text-right text-gray-400">—</td>
-                  <td class="px-3 py-2 text-right"><span id="totalScore" class="font-semibold text-indigo-600">-</span></td>
-                  <td class="px-3 py-2"><span id="labelGrandTotal" class="text-gray-500">總分：</span><span id="grandTotalScore" class="font-semibold text-fuchsia-600">-</span></td>
+                <tr class="bg-gray-50 dark:bg-slate-800">
+                  <td class="px-3 py-2 text-gray-900 dark:text-slate-100 font-semibold"><span id="rowTotal">四項分</span></td>
+                  <td class="px-3 py-2 text-right text-gray-400 dark:text-slate-500">—</td>
+                  <td class="px-3 py-2 text-right"><span id="totalScore" class="font-semibold text-indigo-600 dark:text-indigo-400">-</span></td>
+                  <td class="px-3 py-2"><span id="labelGrandTotal" class="text-gray-500 dark:text-slate-400">總分：</span><span id="grandTotalScore" class="font-semibold text-fuchsia-600 dark:text-fuchsia-400">-</span></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
         <div class="flex justify-center pt-2">
-          <button id="goLvcalBtn" type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300" aria-label="前往等級計算">前往等級計算</button>
+          <button id="goLvcalBtn" type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-slate-700 dark:bg-slate-600 text-white text-sm font-semibold hover:bg-slate-800 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:focus:ring-slate-500" aria-label="前往等級計算">前往等級計算</button>
         </div>
       </section>
     </div>
   </main>
 
   <script>
+    // 主題切換
+    (function () {
+      const toggleBtn = document.getElementById('themeToggle');
+      const root = document.documentElement;
+      const getTheme = () => (root.classList.contains('dark') ? 'dark' : 'light');
+      const applyBtnLabel = () => {
+        const dark = root.classList.contains('dark');
+        if (!toggleBtn) return;
+        toggleBtn.textContent = dark ? '☀️ 淺色' : '🌙 深色';
+        toggleBtn.setAttribute('aria-pressed', String(dark));
+        toggleBtn.setAttribute('aria-label', dark ? '切換為淺色模式' : '切換為深色模式');
+        toggleBtn.title = dark ? '切換為淺色模式' : '切換為深色模式';
+      };
+      applyBtnLabel();
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          root.classList.toggle('dark');
+          try { localStorage.setItem('tlotsas_theme', getTheme()); } catch(e) {}
+          applyBtnLabel();
+        });
+        toggleBtn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleBtn.click(); }
+        });
+      }
+    })();
+
     const formEl = document.getElementById('astroForm');
     const langSelectEl = document.getElementById('langSelect');
     const plannedLevelEl = document.getElementById('plannedLevel');

@@ -1,0 +1,213 @@
+<!-- made by nos, 2025/08/19, do not distribute! -->
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>星象合約－原初之星計算｜nos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-100 text-gray-800">
+  <main class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-3xl bg-white rounded-lg shadow-xl p-5 sm:p-6 md:p-8">
+      <section class="flex flex-col gap-4">
+        <h2 class="text-center text-2xl font-semibold text-blue-600">星象合約－原初之星計算</h2>
+
+        <form id="astroForm" class="grid grid-cols-1 sm:grid-cols-2 gap-4" novalidate>
+          <label for="plannedLevel" class="flex flex-col gap-1" tabindex="0" aria-label="預計角色等級輸入區塊">
+            <span class="text-sm text-gray-600">預計角色等級</span>
+            <input id="plannedLevel" type="number" inputmode="numeric" min="1" step="1" value="100" required
+                   class="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400" />
+          </label>
+
+          <label for="targetAstro" class="flex flex-col gap-1" tabindex="0" aria-label="目標星象等級輸入區塊">
+            <span class="text-sm text-gray-600">目標星象等級</span>
+            <input id="targetAstro" type="number" inputmode="numeric" min="1" step="1" value="10" required
+                   class="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-400" />
+          </label>
+        </form>
+
+        <div id="errorBox" class="hidden text-center text-red-600 text-sm font-medium"></div>
+
+        <section id="results" class="opacity-0 transition-opacity duration-300">
+          <div class="overflow-x-auto">
+            <table class="min-w-full border border-gray-200 rounded-md overflow-hidden">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-2 text-left text-sm font-semibold text-gray-700 border-b">項目</th>
+                  <th class="px-3 py-2 text-right text-sm font-semibold text-gray-700 border-b">等級</th>
+                  <th class="px-3 py-2 text-right text-sm font-semibold text-gray-700 border-b">積分</th>
+                  <th class="px-3 py-2 text-left text-sm font-semibold text-gray-700 border-b">裝備</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                <tr>
+                  <td class="px-3 py-2 text-gray-700">角色等級</td>
+                  <td class="px-3 py-2 text-right"><span id="roleLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="roleScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2"><span class="text-gray-500">裝備所需積分：</span><span id="needScore" class="font-semibold text-emerald-600">-</span></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2 text-gray-700">技能等級</td>
+                  <td class="px-3 py-2 text-right"><span id="skillLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="skillScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2"><span class="text-gray-500">裝備所需等級：</span><span id="needLevel" class="font-semibold text-emerald-600">-</span></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2 text-gray-700">遺物等級</td>
+                  <td class="px-3 py-2 text-right"><span id="relicLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="relicScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2"><span class="text-gray-500">部位平均等級：</span><span id="avgPartLevel" class="font-semibold text-emerald-600">-</span></td>
+                </tr>
+                <tr>
+                  <td class="px-3 py-2 text-gray-700">幻獸等級</td>
+                  <td class="px-3 py-2 text-right"><span id="petLevel" class="font-semibold text-blue-600">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="petScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2 text-gray-400">—</td>
+                </tr>
+                <tr class="bg-gray-50">
+                  <td class="px-3 py-2 text-gray-900 font-semibold">四項分</td>
+                  <td class="px-3 py-2 text-right text-gray-400">—</td>
+                  <td class="px-3 py-2 text-right"><span id="totalScore" class="font-semibold text-indigo-600">-</span></td>
+                  <td class="px-3 py-2"><span class="text-gray-500">總分：</span><span id="grandTotalScore" class="font-semibold text-fuchsia-600">-</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div class="flex justify-center pt-2">
+          <button id="goLvcalBtn" type="button" class="inline-flex items-center px-4 py-2 rounded-md bg-slate-700 text-white text-sm font-semibold hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-300" aria-label="前往等級計算">前往等級計算</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const formEl = document.getElementById('astroForm');
+    const plannedLevelEl = document.getElementById('plannedLevel');
+    const targetAstroEl = document.getElementById('targetAstro');
+    const resultsEl = document.getElementById('results');
+    const errorBoxEl = document.getElementById('errorBox');
+
+    const roleLevelEl = document.getElementById('roleLevel');
+    const roleScoreEl = document.getElementById('roleScore');
+    const skillLevelEl = document.getElementById('skillLevel');
+    const skillScoreEl = document.getElementById('skillScore');
+    const relicLevelEl = document.getElementById('relicLevel');
+    const relicScoreEl = document.getElementById('relicScore');
+    const petLevelEl = document.getElementById('petLevel');
+    const petScoreEl = document.getElementById('petScore');
+    const totalScoreEl = document.getElementById('totalScore');
+    const grandTotalScoreEl = document.getElementById('grandTotalScore');
+    const needScoreEl = document.getElementById('needScore');
+    const needLevelEl = document.getElementById('needLevel');
+    const avgPartLevelEl = document.getElementById('avgPartLevel');
+
+    const quotient = (a, b) => {
+      if (b === 0) return 0;
+      return Math.trunc(a / b);
+    };
+
+    const formatInt = (n) => {
+      if (!Number.isFinite(n)) return '-';
+      return Math.round(n).toLocaleString('zh-TW');
+    };
+
+    const validate = () => {
+      errorBoxEl.classList.add('hidden');
+      errorBoxEl.textContent = '';
+
+      plannedLevelEl.classList.remove('ring-2', 'ring-red-300', 'border-red-400');
+      targetAstroEl.classList.remove('ring-2', 'ring-red-300', 'border-red-400');
+
+      const plannedLevel = Number(plannedLevelEl.value);
+      const targetAstro = Number(targetAstroEl.value);
+
+      const invalids = [];
+      if (!Number.isFinite(plannedLevel) || plannedLevel < 1) invalids.push(plannedLevelEl);
+      if (!Number.isFinite(targetAstro) || targetAstro < 1) invalids.push(targetAstroEl);
+
+      if (invalids.length > 0) {
+        invalids.forEach(el => el.classList.add('ring-2', 'ring-red-300', 'border-red-400'));
+        errorBoxEl.textContent = '請輸入有效的正整數。';
+        errorBoxEl.classList.remove('hidden');
+        resultsEl.classList.add('opacity-0');
+        return null;
+      }
+      return { plannedLevel: Math.round(plannedLevel), targetAstro: Math.round(targetAstro) };
+    };
+
+    const calculate = () => {
+      const v = validate();
+      if (!v) return;
+
+      const plannedLevel = v.plannedLevel;
+      const targetAstro = v.targetAstro;
+
+      const roleLevel = plannedLevel;
+      const skillLevel = plannedLevel;
+      const relicLevel = quotient(plannedLevel, 10) + 1;
+      const petLevel = (quotient(plannedLevel, 10) + 1) * 10;
+
+      const roleScore = (roleLevel - 100) * 100;
+      const skillScore = (skillLevel - 100) * 8 * 13;
+      const relicScore = ((relicLevel - 10) * 20) * 57;
+      const petScore = (petLevel - 100) * 4 * 14;
+
+      const totalScore = roleScore + skillScore + relicScore + petScore; // 四項分
+      const needScore = ((targetAstro - 10) * 100) - totalScore; // 裝備所需積分（裝備分）
+      const needLevel = quotient(needScore, 38) + 1; // 裝備所需等級
+      const avgPartLevel = quotient(needLevel, 5) + 1 + 100; // 部位平均等級
+      const grandTotalScore = totalScore + needScore; // 總分 = 四項分 + 裝備分
+
+      roleLevelEl.textContent = formatInt(roleLevel);
+      roleScoreEl.textContent = formatInt(roleScore);
+      skillLevelEl.textContent = formatInt(skillLevel);
+      skillScoreEl.textContent = formatInt(skillScore);
+      relicLevelEl.textContent = formatInt(relicLevel);
+      relicScoreEl.textContent = formatInt(relicScore);
+      petLevelEl.textContent = formatInt(petLevel);
+      petScoreEl.textContent = formatInt(petScore);
+      totalScoreEl.textContent = formatInt(totalScore);
+      needScoreEl.textContent = formatInt(needScore);
+      needLevelEl.textContent = formatInt(needLevel);
+      avgPartLevelEl.textContent = formatInt(avgPartLevel);
+      grandTotalScoreEl.textContent = formatInt(grandTotalScore);
+
+      resultsEl.classList.remove('opacity-0');
+    };
+
+    const handleInput = () => {
+      calculate();
+    };
+
+    plannedLevelEl.addEventListener('input', handleInput);
+    targetAstroEl.addEventListener('input', handleInput);
+
+    // 讀取查詢參數，支援 plannedLevel、targetAstro
+    (function applyQueryParams() {
+      const sp = new URLSearchParams(window.location.search);
+      const pLevel = sp.get('plannedLevel');
+      const tAstro = sp.get('targetAstro');
+      if (pLevel !== null && pLevel !== '') {
+        plannedLevelEl.value = String(Math.max(1, Math.round(Number(pLevel)) || 1));
+      }
+      if (tAstro !== null && tAstro !== '') {
+        targetAstroEl.value = String(Math.max(1, Math.round(Number(tAstro)) || 1));
+      }
+    })();
+
+    // 前往等級計算
+    const handleGoLvcal = () => {
+      const planned = Math.max(1, Math.round(Number(plannedLevelEl.value) || 1));
+      const url = `/tlotsas/lvcal/index.html?targetLevel=${encodeURIComponent(planned)}`;
+      window.location.href = url;
+    };
+    document.getElementById('goLvcalBtn').addEventListener('click', handleGoLvcal);
+
+    calculate();
+  </script>
+</body>
+</html>
+

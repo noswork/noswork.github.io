@@ -239,6 +239,7 @@
         <div class="error-msg" id="globalError"></div>
         <div class="button-group">
           <button id="resetBtn" type="button">重置</button>
+          <button id="goSptcalBtn" type="button" style="margin-left:8px; background:#007bff">前往星象計算</button>
         </div>
       </form>
     </div>
@@ -475,6 +476,23 @@
       globalError.classList.remove('visible');
       Object.values(inputs).forEach(el => el.classList.remove('invalid'));
       tryCalculate();
+    });
+
+    // 從查詢參數匯入 targetLevel（若有）
+    (function applyTargetFromQuery(){
+      const sp = new URLSearchParams(window.location.search);
+      const tgt = sp.get('targetLevel');
+      if (tgt !== null && tgt !== '') {
+        const n = Math.max(Number(inputs.cur.min) || 1, Math.min(Number(inputs.tgt.max) || 183, Math.round(Number(tgt)) || 1));
+        inputs.tgt.value = String(n);
+      }
+    })();
+
+    // 前往星象計算（把目標等級帶去當預計角色等級）
+    document.getElementById('goSptcalBtn').addEventListener('click', () => {
+      const planned = Number(inputs.tgt.value) || 1;
+      const url = `/tlotsas/sptcal/index.html?plannedLevel=${encodeURIComponent(Math.round(planned))}`;
+      window.location.href = url;
     });
 
     function calculate() {

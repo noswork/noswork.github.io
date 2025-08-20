@@ -33,6 +33,7 @@
                   class="px-3 py-1.5 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-100 text-sm hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500">
             🌙 深色
           </button>
+          <!-- 進階自訂面板已移除，保留輸出直接編輯功能 -->
           <label class="sr-only" for="langSelect">Language</label>
           <select id="langSelect" class="px-2 py-1 rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500 focus:border-blue-400 dark:focus:border-blue-500 dark:text-slate-100" aria-label="切換語言">
             <option value="zh-TW">繁體中文</option>
@@ -54,6 +55,8 @@
           </label>
         </form>
 
+        <!-- 進階自訂輸入區已移除 -->
+
         <div id="errorBox" class="hidden text-center text-red-600 dark:text-red-400 text-sm font-medium"></div>
 
         <section id="results" class="opacity-0 transition-opacity duration-300">
@@ -70,33 +73,33 @@
               <tbody class="divide-y divide-gray-100 dark:divide-slate-700">
                 <tr>
                   <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowRole">角色等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="roleLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
-                  <td class="px-3 py-2 text-right"><span id="roleScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="roleLevel" data-adv="roleLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="roleScore" data-adv="roleScore" class="font-semibold">-</span></td>
                   <td class="px-3 py-2"><span id="labelEquipNeedScore" class="text-gray-500 dark:text-slate-400">裝備所需積分：</span><span id="needScore" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
                   <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowSkill">技能等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="skillLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
-                  <td class="px-3 py-2 text-right"><span id="skillScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="skillLevel" data-adv="skillLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="skillScore" data-adv="skillScore" class="font-semibold">-</span></td>
                   <td class="px-3 py-2"><span id="labelEquipNeedLevel" class="text-gray-500 dark:text-slate-400">裝備所需等級：</span><span id="needLevel" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
                   <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowRelic">遺物等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="relicLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
-                  <td class="px-3 py-2 text-right"><span id="relicScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="relicLevel" data-adv="relicLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="relicScore" data-adv="relicScore" class="font-semibold">-</span></td>
                   <td class="px-3 py-2"><span id="labelAvgPartLevel" class="text-gray-500 dark:text-slate-400">部位平均等級：</span><span id="avgPartLevel" class="font-semibold text-emerald-600 dark:text-emerald-400">-</span></td>
                 </tr>
                 <tr>
                   <td class="px-3 py-2 text-gray-700 dark:text-slate-200"><span id="rowPet">幻獸等級</span></td>
-                  <td class="px-3 py-2 text-right"><span id="petLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
-                  <td class="px-3 py-2 text-right"><span id="petScore" class="font-semibold">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="petLevel" data-adv="petLevel" class="font-semibold text-blue-600 dark:text-blue-400">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="petScore" data-adv="petScore" class="font-semibold">-</span></td>
                   <td class="px-3 py-2 text-gray-400 dark:text-slate-500">—</td>
                 </tr>
                 <tr class="bg-gray-50 dark:bg-slate-800">
                   <td class="px-3 py-2 text-gray-900 dark:text-slate-100 font-semibold"><span id="rowTotal">四項分</span></td>
                   <td class="px-3 py-2 text-right text-gray-400 dark:text-slate-500">—</td>
-                  <td class="px-3 py-2 text-right"><span id="totalScore" class="font-semibold text-indigo-600 dark:text-indigo-400">-</span></td>
-                  <td class="px-3 py-2"><span id="labelGrandTotal" class="text-gray-500 dark:text-slate-400">總分：</span><span id="grandTotalScore" class="font-semibold text-fuchsia-600 dark:text-fuchsia-400">-</span></td>
+                  <td class="px-3 py-2 text-right"><span id="totalScore" data-adv="totalScore" class="font-semibold text-indigo-600 dark:text-indigo-400">-</span></td>
+                  <td class="px-3 py-2"><span id="labelGrandTotal" class="text-gray-500 dark:text-slate-400">總分：</span><span id="grandTotalScore" data-adv="grandTotalScore" class="font-semibold text-fuchsia-600 dark:text-fuchsia-400">-</span></td>
                 </tr>
               </tbody>
             </table>
@@ -142,6 +145,85 @@
     const targetAstroEl = document.getElementById('targetAstro');
     const resultsEl = document.getElementById('results');
     const errorBoxEl = document.getElementById('errorBox');
+
+    // 進階自訂輸入區已移除 — 使用輸出格直接編輯覆蓋值
+    const advToggleBtn = null;
+    const advPanel = null;
+    const advFields = {};
+
+    // 允許在輸出欄位直接編輯（點擊變成輸入）
+    const makeOutputEditable = () => {
+      const advEls = Array.from(document.querySelectorAll('[data-adv]'));
+      advEls.forEach(el => {
+        el.style.cursor = 'text';
+        el.addEventListener('click', () => {
+          // 若進階面板未開啟則開啟
+          if (advPanel && advPanel.classList.contains('hidden')) {
+            advPanel.classList.remove('hidden');
+            if (advToggleBtn) advToggleBtn.setAttribute('aria-pressed', 'true');
+          }
+          // 建立 input 覆蓋原本 span
+          if (el.getAttribute('contenteditable') === 'true') return;
+          const key = el.getAttribute('data-adv');
+          const input = document.createElement('input');
+          input.type = 'number';
+          input.value = (el.textContent && el.textContent !== '-' ) ? el.textContent.replace(/,/g,'') : '';
+          input.className = 'px-2 py-1 rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100';
+          input.style.width = '100%';
+          el.replaceWith(input);
+          input.focus();
+          const commit = () => {
+            const val = input.value.trim();
+            const span = document.createElement('span');
+            span.id = el.id;
+            span.setAttribute('data-adv', key);
+            span.className = el.className;
+            span.textContent = val === '' ? '-' : Number(val).toLocaleString('zh-TW');
+            input.replaceWith(span);
+            // 把值同步到進階欄位（若存在）
+            // 寫入全域覆蓋物件，供 calculate() 使用
+            try {
+              const num = val === '' ? undefined : Math.round(Number(val) || 0);
+              const setOverride = (k, n) => {
+                if (n === undefined) delete window.__sptcal_overrides__[k];
+                else window.__sptcal_overrides__[k] = n;
+              };
+              if (num === undefined) { delete window.__sptcal_overrides__[key]; }
+              else { window.__sptcal_overrides__[key] = num; }
+
+              // 若使用者修改的是等級，則自動計算並同步對應的積分
+              if (key === 'roleLevel' && num !== undefined) {
+                const rScore = (num - 100) * 100;
+                setOverride('roleScore', rScore);
+              }
+              if (key === 'skillLevel' && num !== undefined) {
+                const sScore = (num - 100) * 8 * 13;
+                setOverride('skillScore', sScore);
+              }
+              if (key === 'relicLevel' && num !== undefined) {
+                const relScore = ((num - 10) * 20) * 57;
+                setOverride('relicScore', relScore);
+              }
+              if (key === 'petLevel' && num !== undefined) {
+                const pScore = (num - 100) * 4 * 14;
+                setOverride('petScore', pScore);
+              }
+            } catch(e) {}
+            // 重新計算顯示
+            calculate();
+            // 重新啟用可編輯
+            makeOutputEditable();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); } if (ev.key === 'Escape') { input.value = ''; input.blur(); }});
+        });
+      });
+    };
+
+    // 初始化覆寫與使用者設定記錄
+    window.__sptcal_overrides__ = window.__sptcal_overrides__ || {};
+    window.__sptcal_user_set__ = window.__sptcal_user_set__ || {};
+    makeOutputEditable();
 
     const roleLevelEl = document.getElementById('roleLevel');
     const roleScoreEl = document.getElementById('roleScore');
@@ -279,25 +361,42 @@
       const relicScore = ((relicLevel - 10) * 20) * 57;
       const petScore = (petLevel - 100) * 4 * 14;
 
-      const totalScore = roleScore + skillScore + relicScore + petScore; // 四項分
-      const needScore = ((targetAstro - 10) * 100) - totalScore; // 裝備所需積分（裝備分）
-      const needLevel = quotient(needScore, 38) + 1; // 裝備所需等級
-      const avgPartLevel = quotient(needLevel, 5) + 1 + 100; // 部位平均等級
-      const grandTotalScore = totalScore + needScore; // 總分 = 四項分 + 裝備分
+      const totalScore = roleScore + skillScore + relicScore + petScore; // 四項分（基礎）
 
-      roleLevelEl.textContent = formatInt(roleLevel);
-      roleScoreEl.textContent = formatInt(roleScore);
-      skillLevelEl.textContent = formatInt(skillLevel);
-      skillScoreEl.textContent = formatInt(skillScore);
-      relicLevelEl.textContent = formatInt(relicLevel);
-      relicScoreEl.textContent = formatInt(relicScore);
-      petLevelEl.textContent = formatInt(petLevel);
-      petScoreEl.textContent = formatInt(petScore);
-      totalScoreEl.textContent = formatInt(totalScore);
-      needScoreEl.textContent = formatInt(needScore);
-      needLevelEl.textContent = formatInt(needLevel);
+      // 支援使用者直接在輸出格編輯（優先採用 userOverrides）
+      const userOverrides = window.__sptcal_overrides__ || {};
+      const finalRoleLevel = userOverrides.roleLevel ?? roleLevel;
+      const finalRoleScore = userOverrides.roleScore ?? ((finalRoleLevel === roleLevel) ? roleScore : ((finalRoleLevel - 100) * 100));
+      const finalSkillLevel = userOverrides.skillLevel ?? skillLevel;
+      const finalSkillScore = userOverrides.skillScore ?? ((finalSkillLevel === skillLevel) ? skillScore : ((finalSkillLevel - 100) * 8 * 13));
+      const finalRelicLevel = userOverrides.relicLevel ?? relicLevel;
+      const finalRelicScore = userOverrides.relicScore ?? ((finalRelicLevel === relicLevel) ? relicScore : (((finalRelicLevel - 10) * 20) * 57));
+      const finalPetLevel = userOverrides.petLevel ?? petLevel;
+      const finalPetScore = userOverrides.petScore ?? ((finalPetLevel === petLevel) ? petScore : ((finalPetLevel - 100) * 4 * 14));
+
+      // 以最終四項分重新計算裝備所需積分與等級（除非使用者手動覆蓋 needScore/needLevel）
+      const effectiveFour = finalRoleScore + finalSkillScore + finalRelicScore + finalPetScore;
+      const computedNeedScore = ((targetAstro - 10) * 100) - effectiveFour;
+      const computedNeedLevel = quotient(computedNeedScore, 38) + 1;
+      const finalNeedScore = (userOverrides.hasOwnProperty('needScore')) ? userOverrides.needScore : computedNeedScore;
+      const finalNeedLevel = (userOverrides.hasOwnProperty('needLevel')) ? userOverrides.needLevel : computedNeedLevel;
+      const avgPartLevel = quotient(finalNeedLevel, 5) + 1 + 100; // 部位平均等級
+
+      roleLevelEl.textContent = formatInt(finalRoleLevel);
+      roleScoreEl.textContent = formatInt(finalRoleScore);
+      skillLevelEl.textContent = formatInt(finalSkillLevel);
+      skillScoreEl.textContent = formatInt(finalSkillScore);
+      relicLevelEl.textContent = formatInt(finalRelicLevel);
+      relicScoreEl.textContent = formatInt(finalRelicScore);
+      petLevelEl.textContent = formatInt(finalPetLevel);
+      petScoreEl.textContent = formatInt(finalPetScore);
+      totalScoreEl.textContent = formatInt(effectiveFour);
+      needScoreEl.textContent = formatInt(finalNeedScore);
+      needLevelEl.textContent = formatInt(finalNeedLevel);
       avgPartLevelEl.textContent = formatInt(avgPartLevel);
-      grandTotalScoreEl.textContent = formatInt(grandTotalScore);
+      // 總分
+      const displayGrand = effectiveFour + finalNeedScore;
+      grandTotalScoreEl.textContent = formatInt(displayGrand);
 
       resultsEl.classList.remove('opacity-0');
     };
@@ -308,6 +407,18 @@
 
     plannedLevelEl.addEventListener('input', handleInput);
     targetAstroEl.addEventListener('input', handleInput);
+    if (advToggleBtn) {
+      advToggleBtn.addEventListener('click', () => {
+        const open = !advPanel.classList.contains('hidden');
+        if (open) {
+          advPanel.classList.add('hidden');
+          advToggleBtn.setAttribute('aria-pressed', 'false');
+        } else {
+          advPanel.classList.remove('hidden');
+          advToggleBtn.setAttribute('aria-pressed', 'true');
+        }
+      });
+    }
 
     // 讀取查詢參數，支援 plannedLevel、targetAstro
     (function applyQueryParams() {

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>據點地圖v3｜Nos</title>
+    
+    <!-- 樣式文件 -->
+    <link rel="stylesheet" href="styles/map.css" />
+  </head>
+  <body>
+    <div id="map-root">
+      <!-- 面板切換按鈕 -->
+      <button id="panel-toggle" class="panel-toggle-button" aria-label="切換功能面板" title="開啟/關閉功能面板">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="toggle-icon-bars" d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="toggle-icon-close" d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      
+      <div id="control-panel" class="map-overlay" aria-label="功能面板">
+        <header class="panel-header">
+          <h1>功能面板</h1>
+        </header>
+
+        <section class="panel-section" aria-labelledby="block-marking-heading">
+          <div class="section-title">
+            <h2 id="block-marking-heading">區塊標記</h2>
+            <p class="section-caption">左鍵標記，右鍵清除</p>
+          </div>
+
+          <fieldset class="color-options" role="radiogroup" aria-label="標記顏色">
+            <legend class="sr-only">標記顏色</legend>
+            <label class="color-option" aria-label="醒目紅">
+              <input type="radio" name="block-color" value="#ff6961" checked />
+              <span class="color-swatch" style="--swatch-color: #ff6961"></span>
+            </label>
+            <label class="color-option" aria-label="亮橙">
+              <input type="radio" name="block-color" value="#ffaa3b" />
+              <span class="color-swatch" style="--swatch-color: #ffaa3b"></span>
+            </label>
+            <label class="color-option" aria-label="亮黃">
+              <input type="radio" name="block-color" value="#ffd966" />
+              <span class="color-swatch" style="--swatch-color: #ffd966"></span>
+            </label>
+            <label class="color-option" aria-label="柔綠">
+              <input type="radio" name="block-color" value="#8bd17c" />
+              <span class="color-swatch" style="--swatch-color: #8bd17c"></span>
+            </label>
+            <label class="color-option" aria-label="湖藍">
+              <input type="radio" name="block-color" value="#63b4ff" />
+              <span class="color-swatch" style="--swatch-color: #63b4ff"></span>
+            </label>
+            <label class="color-option" aria-label="霓虹紫">
+              <input type="radio" name="block-color" value="#bc8cff" />
+              <span class="color-swatch" style="--swatch-color: #bc8cff"></span>
+            </label>
+            <label class="color-option color-option--custom" aria-label="自訂顏色">
+              <input type="radio" name="block-color" value="custom" />
+              <span class="color-swatch custom" style="--swatch-color: #f1c40f">
+                <input
+                  id="block-color-custom"
+                  type="color"
+                  value="#f1c40f"
+                  aria-label="選擇自訂顏色"
+                />
+              </span>
+            </label>
+          </fieldset>
+
+          <div class="panel-actions">
+            <button id="block-clear" type="button" class="panel-button">清除所有標記</button>
+            <button id="map-export" type="button" class="panel-button panel-button--accent">導出地圖</button>
+          </div>
+        </section>
+
+        <section class="panel-section theme-toggle-section" aria-labelledby="theme-heading">
+          <h2 id="theme-heading" class="section-subtitle">主題設定</h2>
+          <div class="theme-toggle-buttons">
+            <button id="theme-dark" type="button" class="theme-button active" aria-label="切換到暗黑主題">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span>暗黑</span>
+            </button>
+            <button id="theme-light" type="button" class="theme-button" aria-label="切換到明亮主題">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <span>明亮</span>
+            </button>
+          </div>
+        </section>
+      </div>
+      <svg id="hex-map" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Glow effect for highlighted hexagons -->
+          <filter id="hover-glow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <!-- Hexagon grid layer -->
+        <g id="hex-layer"></g>
+        
+        <!-- Mark layer (above grid, for colored marks) -->
+        <g id="mark-layer"></g>
+        
+        <!-- Building icons layer (above marks) -->
+        <g id="building-layer"></g>
+        
+        <!-- Label layer (above everything) -->
+        <g id="label-layer"></g>
+      </svg>
+    </div>
+    <div role="status" aria-live="polite" class="sr-only">
+      Interactive hex map loaded
+    </div>
+
+    <!-- 配置文件 (必須先載入) -->
+    <script src="scripts/config.js"></script>
+    
+    <!-- 主邏輯文件 -->
+    <script src="scripts/map.js"></script>
+  </body>
+</html>

@@ -742,8 +742,11 @@
     state.pointers.delete(event.pointerId);
     svg.releasePointerCapture(event.pointerId);
     
-    // 取消長按計時器
-    clearLongPress();
+    // 只取消長按計時器，不清除 longPressTarget（讓 handleClick 檢查）
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
     
     if (state.pointers.size === 0) {
       state.isPanning = false;
@@ -817,6 +820,18 @@
     if (state.dragging) {
       return;
     }
+    
+    // 檢查是否已經被長按處理過
+    if (longPressTarget && longPressTarget.handled) {
+      // 延遲清除，確保不會誤觸發
+      setTimeout(() => {
+        longPressTarget = null;
+      }, 100);
+      return;
+    }
+    
+    // 清除未處理的長按目標
+    longPressTarget = null;
     
     let group = event.target.closest?.(".hex-group");
     let x;
@@ -968,13 +983,14 @@
       navigator.vibrate(50);
     }
     
-    // 防止後續的點擊事件
-    state.dragging = true;
-    setTimeout(() => {
-      state.dragging = false;
-    }, 100);
+    // 防止後續的點擊事件 - 設置標記表示長按已處理
+    longPressTarget.handled = true;
     
-    clearLongPress();
+    // 只清除計時器，保留 longPressTarget 讓 handleClick 可以檢查
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
   }
   
   function clearLongPress() {

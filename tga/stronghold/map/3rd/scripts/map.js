@@ -28,6 +28,7 @@
     padding: mapConfig.padding,
     minScale: mapConfig.minScale,
     maxScale: mapConfig.maxScale,
+    panConstraint: mapConfig.panConstraint,
   };
 
   // Derived geometric constants
@@ -54,8 +55,18 @@
   const eventHandlers = new Map();
   const mainCityArea = specialAreas && specialAreas.mainCityArea ? specialAreas.mainCityArea : null;
   
+  // 長按檢測
+  let longPressTimer = null;
+  let longPressTarget = null;
+  const LONG_PRESS_DURATION = 500; // 500ms
+  
   // 防抖保存狀態的計時器
   let saveStateDebounce = null;
+  
+  // 🚀 性能優化：使用 requestAnimationFrame 批量處理變換
+  let pendingTransform = false;
+  let wheelThrottleTimer = null;
+  let lastLabelScale = null; // 記錄上次的標籤縮放，避免重複設置
 
   const state = {
     scale: 1,
@@ -681,10 +692,21 @@
       state.lastPointer.x = event.clientX;
       state.lastPointer.y = event.clientY;
       svg.classList.add("dragging");
+      
+      // 啟動長按計時器
+      const group = event.target.closest?.(".hex-group");
+      if (group) {
+        longPressTarget = { x: event.clientX, y: event.clientY, group };
+        longPressTimer = setTimeout(() => {
+          handleLongPress(event);
+        }, LONG_PRESS_DURATION);
+      }
     } else if (state.pointers.size === 2) {
       state.isPanning = false;
       state.dragging = true;
       initPinch();
+      // 取消長按計時器（多點觸控）
+      clearLongPress();
     }
   }
 
@@ -703,6 +725,8 @@
       const dy = event.clientY - state.lastPointer.y;
       if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
         state.dragging = true;
+        // 移動時取消長按
+        clearLongPress();
       }
       state.translate.x += dx;
       state.translate.y += dy;
@@ -717,6 +741,10 @@
   function handlePointerUpOrCancel(event) {
     state.pointers.delete(event.pointerId);
     svg.releasePointerCapture(event.pointerId);
+    
+    // 取消長按計時器
+    clearLongPress();
+    
     if (state.pointers.size === 0) {
       state.isPanning = false;
       state.pinch.active = false;
@@ -765,6 +793,14 @@
 
   function handleWheel(event) {
     event.preventDefault();
+    
+    // 🚀 節流優化：限制滾輪事件處理頻率（每 16ms 最多處理一次，約 60fps）
+    if (wheelThrottleTimer) return;
+    
+    wheelThrottleTimer = setTimeout(() => {
+      wheelThrottleTimer = null;
+    }, 16);
+    
     const baseIntensity = 1.08;
     const preciseIntensity = 1.04;
     const zoomIntensity = event.metaKey || event.ctrlKey ? preciseIntensity : baseIntensity;
@@ -782,7 +818,6 @@
       return;
     }
     
-    // 左鍵點擊 - 添加標記
     let group = event.target.closest?.(".hex-group");
     let x;
     let y;
@@ -830,9 +865,20 @@
       })
     );
 
-    // 左鍵點擊：添加標記
+    // 根據當前模式執行操作
     const cellsToMark = collectMarkingCells(x, y);
-    applyColorToCells(cellsToMark, selectedColor);
+    if (markMode === 'remove') {
+      // 清除模式：刪除標記
+      cellsToMark.forEach(cell => {
+        const key = keyFor(cell.x, cell.y);
+        if (markedCells.has(key)) {
+          clearMarkedCell(key);
+        }
+      });
+    } else {
+      // 標記模式：添加標記
+      applyColorToCells(cellsToMark, selectedColor);
+    }
   }
 
   function handleContextMenu(event) {
@@ -884,6 +930,60 @@
       }
     });
   }
+  
+  function handleLongPress(event) {
+    // 長按觸發 - 清除標記
+    if (!longPressTarget) return;
+    
+    const group = longPressTarget.group;
+    const x = Number(group.dataset.x);
+    const y = Number(group.dataset.y);
+    
+    // Check if this cell has a building
+    let buildingType = null;
+    for (const [type, coords] of Object.entries(buildingData)) {
+      if (coords.some(([bx, by]) => bx === x && by === y)) {
+        buildingType = type;
+        break;
+      }
+    }
+    
+    // 如果是損壞區塊，不執行任何操作
+    if (buildingType === 'block') {
+      clearLongPress();
+      return;
+    }
+    
+    // 長按時清除標記
+    const cellsToMark = collectMarkingCells(x, y);
+    cellsToMark.forEach(cell => {
+      const key = keyFor(cell.x, cell.y);
+      if (markedCells.has(key)) {
+        clearMarkedCell(key);
+      }
+    });
+    
+    // 提供觸覺反饋（如果支持）
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
+    
+    // 防止後續的點擊事件
+    state.dragging = true;
+    setTimeout(() => {
+      state.dragging = false;
+    }, 100);
+    
+    clearLongPress();
+  }
+  
+  function clearLongPress() {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+    longPressTarget = null;
+  }
 
   function handleResize() {
     applyTransform();
@@ -914,10 +1014,32 @@
       }
     });
 
+    const modeInputs = panel.querySelectorAll('input[name="mark-mode"]');
     const colorInputs = panel.querySelectorAll('input[name="block-color"]');
     const customInput = panel.querySelector('#block-color-custom');
     const clearButton = panel.querySelector('#block-clear');
     const exportButton = panel.querySelector('#map-export');
+    
+    // 恢復保存的模式設定
+    const savedMode = loadMarkModeState();
+    if (savedMode) {
+      markMode = savedMode;
+      modeInputs.forEach((input) => {
+        if (input.value === savedMode) {
+          input.checked = true;
+        }
+      });
+      console.log(`已恢復標記模式: ${savedMode === 'add' ? '標記' : '清除'}`);
+    }
+    
+    // 設置模式切換事件
+    modeInputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        markMode = input.value;
+        saveMarkModeState(markMode);
+        console.log(`標記模式已切換為: ${markMode === 'add' ? '標記' : '清除'}`);
+      });
+    });
 
     // 恢復保存的顏色設定
     const savedColor = loadMarkColorState();
@@ -989,6 +1111,9 @@
     
     // 設置主題切換功能
     setupThemeToggle();
+    
+    // 設置語言切換功能
+    setupLanguageToggle();
   }
   
   // ==================== Theme Toggle ====================
@@ -1023,10 +1148,100 @@
       console.log(`主題已切換為: ${theme === 'light' ? '明亮' : '暗黑'}`);
     }
   }
+  
+  // ==================== Language Toggle ====================
+  
+  let currentLanguage = 'zh-TW';
+  let translations = {};
+  
+  async function setupLanguageToggle() {
+    const twButton = document.getElementById('lang-tw');
+    const enButton = document.getElementById('lang-en');
+    
+    if (!twButton || !enButton) return;
+    
+    // 載入語言 JSON
+    try {
+      const response = await fetch('scripts/locales.json');
+      translations = await response.json();
+    } catch (error) {
+      console.error('無法載入語言文件:', error);
+      return;
+    }
+    
+    // 從 localStorage 讀取用戶偏好
+    const savedLanguage = localStorage.getItem('stronghold-language') || 'zh-TW';
+    setLanguage(savedLanguage);
+    
+    twButton.addEventListener('click', () => setLanguage('zh-TW'));
+    enButton.addEventListener('click', () => setLanguage('en'));
+    
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      
+      // 更新按鈕狀態
+      if (lang === 'en') {
+        twButton.classList.remove('active');
+        enButton.classList.add('active');
+      } else {
+        twButton.classList.add('active');
+        enButton.classList.remove('active');
+      }
+      
+      // 更新所有帶有 data-i18n 屬性的元素
+      updateTextContent();
+      
+      // 保存到 localStorage
+      localStorage.setItem('stronghold-language', lang);
+      console.log(`語言已切換為: ${lang === 'en' ? 'English' : '繁體中文'}`);
+    }
+  }
+  
+  function updateTextContent() {
+    const langData = translations[currentLanguage];
+    if (!langData) return;
+    
+    // 更新所有帶有 data-i18n 屬性的元素
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      if (langData[key]) {
+        element.textContent = langData[key];
+      }
+    });
+  }
 
   async function exportMapToPng() {
     try {
       console.log('開始導出地圖...');
+      
+      // 獲取選中的品質設定
+      const qualityInput = document.querySelector('input[name="export-quality"]:checked');
+      const selectedQuality = qualityInput ? qualityInput.value : 'high';
+      
+      // 根據品質設定調整參數
+      let scale, quality;
+      switch (selectedQuality) {
+        case 'low':
+          scale = 0.5;  // 0.5倍解析度（大幅減小檔案）
+          quality = 0.6; // 60% 品質
+          console.log('使用低品質設定 (0.5x, 60%)');
+          break;
+        case 'medium':
+          scale = 0.8;  // 0.8倍解析度（80%大小）
+          quality = 0.8; // 80% 品質
+          console.log('使用中品質設定 (0.8x, 80%)');
+          break;
+        case 'high':
+        default:
+          scale = 4;    // 4倍解析度（最高品質）
+          quality = 1.0; // 100% 品質
+          console.log('使用高品質設定 (4x, 100%)');
+          break;
+      }
+      
+      // 顯示 loading 動畫
+      await showExportLoading();
+      updateExportProgress(10);
       
       const serializer = new XMLSerializer();
       const clone = svg.cloneNode(true);
@@ -1039,6 +1254,8 @@
       
       // 強制顯示所有標籤
       clone.classList.add('labels-visible');
+      
+      updateExportProgress(20);
       
       // 移除變換（導出完整地圖，不使用當前視角）
       const layers = ['hex-layer', 'mark-layer', 'building-layer', 'label-layer'];
@@ -1066,6 +1283,8 @@
       // 將所有建築物圖片轉換為 base64
       const images = clone.querySelectorAll('image');
       console.log(`找到 ${images.length} 個圖片元素`);
+      
+      updateExportProgress(30);
       
       for (const img of images) {
         const href = img.getAttribute('href') || img.getAttribute('xlink:href');
@@ -1109,11 +1328,16 @@
         console.log(`已移除 ${removedCount} 個空位標籤，保留有建築物的標籤`);
       }
       
+      updateExportProgress(50);
+      
       // 獲取當前主題
       const currentTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
       const bgColor = currentTheme === 'light' ? '#e8eef5' : '#0e1420';
       const labelColor = currentTheme === 'light' ? '#1e2936' : '#e8eef5';
       const labelStroke = currentTheme === 'light' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(14, 20, 32, 0.9)';
+      // 網格線顏色：明亮模式使用更深的顏色以提高對比度
+      const hexStroke = currentTheme === 'light' ? '#2c3e50' : '#afc3d5';
+      const hexStrokeWidth = currentTheme === 'light' ? '3.5' : '3';
       
       // 內嵌優化的樣式
       const style = document.createElementNS(svgNS, 'style');
@@ -1140,6 +1364,8 @@
       const exportEnhancements = `
         /* 導出專用高質量樣式 */
         .hex-polygon {
+          stroke: ${hexStroke} !important;
+          stroke-width: ${hexStrokeWidth} !important;
           vector-effect: non-scaling-stroke;
         }
         .hex-label {
@@ -1182,6 +1408,7 @@
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(svgBlob);
       
+      updateExportProgress(60);
       console.log('SVG 已準備好，開始轉換為 PNG...');
       
       // 載入背景圖片
@@ -1189,6 +1416,7 @@
       backgroundImg.crossOrigin = 'Anonymous';
       backgroundImg.onload = () => {
         console.log('背景圖片已載入');
+        updateExportProgress(70);
         
         // 創建圖像並轉換為 Canvas
         const img = new Image();
@@ -1196,7 +1424,7 @@
           console.log('SVG 圖片已載入，開始繪製 Canvas...');
           
           const canvas = document.createElement('canvas');
-          const scale = 3; // 高解析度，3倍已經足夠清晰
+          // 使用選中的品質設定
           canvas.width = width * scale;
           canvas.height = height * scale;
           
@@ -1239,33 +1467,78 @@
           ctx.scale(scale, scale);
           ctx.drawImage(img, 0, 0, width, height);
           
-          console.log(`Canvas 繪製完成 (${canvas.width}x${canvas.height})，生成 PNG...`);
+          console.log(`Canvas 繪製完成 (${canvas.width}x${canvas.height})，生成 PNG (品質: ${selectedQuality})...`);
+          updateExportProgress(85);
           
-          // 導出為高質量 PNG
+          // 導出為 PNG，使用選中的品質設定
           canvas.toBlob((blob) => {
             if (!blob) {
               console.error('無法生成 PNG');
               return;
             }
             
-            const pngUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `stronghold-map-${timestamp}.png`;
-            link.href = pngUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 根據當前語言選擇檔案名稱
+            const filename = translations[currentLanguage]?.exportFilename || 'stronghold';
+            const downloadFilename = `${filename}-${timestamp}.png`;
             
-            URL.revokeObjectURL(pngUrl);
-            URL.revokeObjectURL(url);
+            updateExportProgress(95);
             
-            console.log('地圖已成功導出！');
-          }, 'image/png', 0.98); // 使用高質量壓縮
+            // 使用更兼容的下載方法，支援手機瀏覽器
+            if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+              // 手機上使用 Web Share API（如果可用）
+              const file = new File([blob], downloadFilename, { type: 'image/png' });
+              
+              // 先嘗試分享
+              navigator.share({
+                files: [file],
+                title: filename,
+                text: '地圖導出'
+              }).then(() => {
+                console.log('地圖已成功分享！');
+                updateExportProgress(100);
+                setTimeout(() => hideExportLoading(), 500);
+                URL.revokeObjectURL(url);
+              }).catch((error) => {
+                // 如果分享失敗，使用傳統下載方式
+                console.log('分享失敗，使用下載方式:', error);
+                downloadFile(blob, downloadFilename);
+              });
+            } else {
+              // 桌面或不支援 Share API 的設備使用傳統下載
+              downloadFile(blob, downloadFilename);
+            }
+            
+            function downloadFile(blob, filename) {
+              const pngUrl = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.download = filename;
+              link.href = pngUrl;
+              link.style.display = 'none';
+              
+              document.body.appendChild(link);
+              
+              // 使用 setTimeout 確保在手機上也能觸發
+              setTimeout(() => {
+                link.click();
+                
+                // 延遲清理以確保下載完成
+                setTimeout(() => {
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(pngUrl);
+                  URL.revokeObjectURL(url);
+                  console.log('地圖已成功導出！');
+                  updateExportProgress(100);
+                  setTimeout(() => hideExportLoading(), 500);
+                }, 100);
+              }, 0);
+            }
+          }, 'image/png', quality); // 使用選中的品質設定
         };
         
         img.onerror = (error) => {
           console.error('載入 SVG 圖像失敗:', error);
+          hideExportLoading();
           URL.revokeObjectURL(url);
         };
         
@@ -1274,13 +1547,14 @@
       
       backgroundImg.onerror = (error) => {
         console.error('載入背景圖片失敗:', error);
+        updateExportProgress(70);
         // 如果背景圖片載入失敗，繼續導出但不包含背景
         const img = new Image();
         img.onload = () => {
           console.log('圖片已載入，開始繪製 Canvas（無背景）...');
           
           const canvas = document.createElement('canvas');
-          const scale = 3;
+          // 使用選中的品質設定
           canvas.width = width * scale;
           canvas.height = height * scale;
           
@@ -1304,30 +1578,67 @@
           ctx.scale(scale, scale);
           ctx.drawImage(img, 0, 0, width, height);
           
+          console.log(`Canvas 繪製完成（無背景） (${canvas.width}x${canvas.height})，生成 PNG (品質: ${selectedQuality})...`);
+          
           canvas.toBlob((blob) => {
             if (!blob) {
               console.error('無法生成 PNG');
               return;
             }
             
-            const pngUrl = URL.createObjectURL(blob);
-            const link = document.createElement('a');
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-            link.download = `stronghold-map-${timestamp}.png`;
-            link.href = pngUrl;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const filename = translations[currentLanguage]?.exportFilename || 'stronghold';
+            const downloadFilename = `${filename}-${timestamp}.png`;
             
-            URL.revokeObjectURL(pngUrl);
-            URL.revokeObjectURL(url);
+            // 使用更兼容的下載方法，支援手機瀏覽器
+            if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+              const file = new File([blob], downloadFilename, { type: 'image/png' });
+              
+              navigator.share({
+                files: [file],
+                title: filename,
+                text: '地圖導出'
+              }).then(() => {
+                console.log('地圖已成功分享（無背景）！');
+                updateExportProgress(100);
+                setTimeout(() => hideExportLoading(), 500);
+                URL.revokeObjectURL(url);
+              }).catch((error) => {
+                console.log('分享失敗，使用下載方式:', error);
+                downloadFile(blob, downloadFilename);
+              });
+            } else {
+              downloadFile(blob, downloadFilename);
+            }
             
-            console.log('地圖已成功導出（無背景）！');
-          }, 'image/png', 0.98);
+            function downloadFile(blob, filename) {
+              const pngUrl = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.download = filename;
+              link.href = pngUrl;
+              link.style.display = 'none';
+              
+              document.body.appendChild(link);
+              
+              setTimeout(() => {
+                link.click();
+                
+                setTimeout(() => {
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(pngUrl);
+                  URL.revokeObjectURL(url);
+                  console.log('地圖已成功導出（無背景）！');
+                  updateExportProgress(100);
+                  setTimeout(() => hideExportLoading(), 500);
+                }, 100);
+              }, 0);
+            }
+          }, 'image/png', quality); // 使用選中的品質設定
         };
         
         img.onerror = (error) => {
           console.error('載入 SVG 圖像失敗:', error);
+          hideExportLoading();
           URL.revokeObjectURL(url);
         };
         
@@ -1338,6 +1649,68 @@
       backgroundImg.src = 'assets/background.png';
     } catch (error) {
       console.error('導出地圖失敗:', error);
+      hideExportLoading();
+    }
+  }
+  
+  // Loading 動畫控制函數
+  async function showExportLoading() {
+    const loadingOverlay = document.getElementById('export-loading');
+    const loadingGif = document.getElementById('loading-gif');
+    
+    if (loadingOverlay) {
+      // 隨機選擇一個 GIF
+      const randomGif = await getRandomLoadingGif();
+      if (randomGif && loadingGif) {
+        loadingGif.src = randomGif;
+      }
+      
+      loadingOverlay.classList.add('active');
+    }
+  }
+  
+  // 從本地 GIF 列表中隨機選擇一個
+  let cachedGifList = null;
+  async function getRandomLoadingGif() {
+    try {
+      // 如果還沒有加載 GIF 列表，則加載它
+      if (!cachedGifList) {
+        const response = await fetch('data/gif-index.json');
+        if (response.ok) {
+          cachedGifList = await response.json();
+          console.log(`✅ 已載入 ${cachedGifList.length} 個 Tokyo Ghoul GIF`);
+        } else {
+          console.warn('⚠️ 無法載入 GIF 列表');
+          return null;
+        }
+      }
+      
+      // 隨機選擇一個 GIF
+      if (cachedGifList && cachedGifList.length > 0) {
+        const randomIndex = Math.floor(Math.random() * cachedGifList.length);
+        const gifFilename = cachedGifList[randomIndex];
+        return `assets/loading-gifs/${gifFilename}`;
+      }
+    } catch (error) {
+      console.error('❌ 獲取隨機 GIF 時出錯:', error);
+    }
+    
+    return null;
+  }
+  
+  function hideExportLoading() {
+    const loadingOverlay = document.getElementById('export-loading');
+    if (loadingOverlay) {
+      loadingOverlay.classList.remove('active');
+    }
+    // 重置進度條
+    updateExportProgress(0);
+  }
+  
+  function updateExportProgress(percent) {
+    const progressBar = document.getElementById('export-progress-bar');
+    if (progressBar) {
+      progressBar.style.width = `${percent}%`;
     }
   }
   
@@ -1489,7 +1862,8 @@
     const maxWorldY = mapBounds.maxY;
     
     // 允許的邊距（讓地圖至少有這麼多像素可見）
-    const minVisibleMargin = Math.min(viewportWidth, viewportHeight) * 0.2; // 20% 的視口大小
+    // 使用 config.panConstraint 控制移動範圍
+    const minVisibleMargin = Math.min(viewportWidth, viewportHeight) * config.panConstraint;
     
     // 計算允許的平移範圍
     // 左邊界：地圖右邊緣不能超出視口左側太多
@@ -1508,34 +1882,48 @@
   }
 
   function applyTransform() {
-    // 限制平移範圍
-    constrainPan();
+    // 🚀 使用 requestAnimationFrame 批量處理，避免重複渲染
+    if (pendingTransform) return;
     
-    const matrix = `matrix(${state.scale}, 0, 0, ${state.scale}, ${state.translate.x}, ${state.translate.y})`;
-    // 同時變換所有圖層
-    hexLayer.setAttribute("transform", matrix);
-    if (markLayer) {
-      markLayer.setAttribute("transform", matrix);
-    }
-    buildingLayer.setAttribute("transform", matrix);
-    labelLayer.setAttribute("transform", matrix);
-    updateLabelScale();
-    
-    // 使用防抖延遲保存用戶視角，避免頻繁寫入 localStorage
-    if (saveStateDebounce) {
-      clearTimeout(saveStateDebounce);
-    }
-    saveStateDebounce = setTimeout(() => {
-      saveViewState();
-    }, 150);
+    pendingTransform = true;
+    requestAnimationFrame(() => {
+      pendingTransform = false;
+      
+      // 限制平移範圍
+      constrainPan();
+      
+      const matrix = `matrix(${state.scale}, 0, 0, ${state.scale}, ${state.translate.x}, ${state.translate.y})`;
+      // 同時變換所有圖層
+      hexLayer.setAttribute("transform", matrix);
+      if (markLayer) {
+        markLayer.setAttribute("transform", matrix);
+      }
+      buildingLayer.setAttribute("transform", matrix);
+      labelLayer.setAttribute("transform", matrix);
+      updateLabelScale();
+      
+      // 使用防抖延遲保存用戶視角，避免頻繁寫入 localStorage
+      if (saveStateDebounce) {
+        clearTimeout(saveStateDebounce);
+      }
+      saveStateDebounce = setTimeout(() => {
+        saveViewState();
+      }, 150);
+    });
   }
 
   function updateLabelScale() {
     const labelScale = 1 / state.scale;
-    document.documentElement.style.setProperty(
-      "--label-scale",
-      labelScale.toFixed(4)
-    );
+    const scaledValue = labelScale.toFixed(4);
+    
+    // 🚀 只在值真正改變時更新 CSS 變量，避免不必要的重繪
+    if (lastLabelScale !== scaledValue) {
+      lastLabelScale = scaledValue;
+      document.documentElement.style.setProperty(
+        "--label-scale",
+        scaledValue
+      );
+    }
   }
 
   // ==================== Coordinate Transformation ====================
@@ -1833,6 +2221,65 @@
   function nearestOdd(value) {
     return Math.round((value - 1) / 2) * 2 + 1;
   }
+})();
+
+// ==================== Page Loading Animation ====================
+(async function initPageLoading() {
+  const pageLoadingOverlay = document.getElementById('page-loading');
+  const pageLoadingGif = document.getElementById('page-loading-gif');
+  
+  if (!pageLoadingOverlay || !pageLoadingGif) {
+    console.warn('⚠️ 頁面載入動畫元素未找到');
+    return;
+  }
+
+  // 載入隨機 GIF
+  try {
+    const response = await fetch('data/gif-index.json');
+    if (response.ok) {
+      const gifList = await response.json();
+      if (gifList && gifList.length > 0) {
+        const randomIndex = Math.floor(Math.random() * gifList.length);
+        const gifFilename = gifList[randomIndex];
+        pageLoadingGif.src = `assets/loading-gifs/${gifFilename}`;
+        console.log(`✅ 頁面載入 GIF: ${gifFilename}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ 載入頁面 GIF 時出錯:', error);
+  }
+
+  // 等待頁面完全載入
+  function hidePageLoading() {
+    // 確保至少顯示 1 秒，讓用戶看到動畫
+    const minDisplayTime = 1000;
+    const startTime = performance.now();
+    
+    function hide() {
+      const elapsed = performance.now() - startTime;
+      const remainingTime = Math.max(0, minDisplayTime - elapsed);
+      
+      setTimeout(() => {
+        pageLoadingOverlay.classList.add('hidden');
+        console.log('✅ 頁面載入完成');
+        
+        // 動畫結束後移除元素以釋放資源
+        setTimeout(() => {
+          pageLoadingOverlay.remove();
+        }, 500);
+      }, remainingTime);
+    }
+
+    // 等待所有資源載入完成
+    if (document.readyState === 'complete') {
+      hide();
+    } else {
+      window.addEventListener('load', hide);
+    }
+  }
+
+  // 開始檢查載入狀態
+  hidePageLoading();
 })();
 
 // ==================== Usage Examples ====================

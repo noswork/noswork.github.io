@@ -1545,39 +1545,24 @@
                   const link = document.createElement('a');
                   link.download = filename;
                   link.href = pngUrl;
-                  link.style.display = 'none';
-                  
-                  // 添加必要的屬性以提高兼容性
-                  link.setAttribute('target', '_blank');
-                  link.setAttribute('rel', 'noopener noreferrer');
                   
                   document.body.appendChild(link);
+                  link.click();
                   
-                  // 觸發下載
-                  const clickEvent = new MouseEvent('click', {
-                    view: window,
-                    bubbles: true,
-                    cancelable: true
-                  });
-                  
-                  // 使用 setTimeout 確保在手機上也能觸發
+                  // 延遲清理以確保下載完成
                   setTimeout(() => {
-                    link.dispatchEvent(clickEvent);
-                    
-                    // 延遲清理以確保下載完成
-                    setTimeout(() => {
-                      try {
-                        document.body.removeChild(link);
-                      } catch (e) {
-                        console.warn('清理下載鏈接時出錯:', e);
-                      }
-                      URL.revokeObjectURL(pngUrl);
-                      URL.revokeObjectURL(url);
-                      console.log('地圖已成功導出！');
-                      updateExportProgress(100);
-                      setTimeout(() => hideExportLoading(), 500);
-                    }, isMobile ? 1000 : 100); // 手機上延遲更長時間
-                  }, isMobile ? 100 : 0);
+                    try {
+                      document.body.removeChild(link);
+                    } catch (e) {
+                      console.warn('清理下載鏈接時出錯:', e);
+                    }
+                    URL.revokeObjectURL(pngUrl);
+                    URL.revokeObjectURL(url);
+                  }, 100);
+                  
+                  console.log('地圖已成功導出！');
+                  updateExportProgress(100);
+                  setTimeout(() => hideExportLoading(), 500);
                   
                 } catch (error) {
                   console.error('傳統下載方式失敗:', error);
@@ -1698,39 +1683,24 @@
                   const link = document.createElement('a');
                   link.download = filename;
                   link.href = pngUrl;
-                  link.style.display = 'none';
-                  
-                  // 添加必要的屬性以提高兼容性
-                  link.setAttribute('target', '_blank');
-                  link.setAttribute('rel', 'noopener noreferrer');
                   
                   document.body.appendChild(link);
+                  link.click();
                   
-                  // 觸發下載
-                  const clickEvent = new MouseEvent('click', {
-                    view: window,
-                    bubbles: true,
-                    cancelable: true
-                  });
-                  
-                  // 使用 setTimeout 確保在手機上也能觸發
+                  // 延遲清理以確保下載完成
                   setTimeout(() => {
-                    link.dispatchEvent(clickEvent);
-                    
-                    // 延遲清理以確保下載完成
-                    setTimeout(() => {
-                      try {
-                        document.body.removeChild(link);
-                      } catch (e) {
-                        console.warn('清理下載鏈接時出錯:', e);
-                      }
-                      URL.revokeObjectURL(pngUrl);
-                      URL.revokeObjectURL(url);
-                      console.log('地圖已成功導出（無背景）！');
-                      updateExportProgress(100);
-                      setTimeout(() => hideExportLoading(), 500);
-                    }, isMobile ? 1000 : 100); // 手機上延遲更長時間
-                  }, isMobile ? 100 : 0);
+                    try {
+                      document.body.removeChild(link);
+                    } catch (e) {
+                      console.warn('清理下載鏈接時出錯:', e);
+                    }
+                    URL.revokeObjectURL(pngUrl);
+                    URL.revokeObjectURL(url);
+                  }, 100);
+                  
+                  console.log('地圖已成功導出（無背景）！');
+                  updateExportProgress(100);
+                  setTimeout(() => hideExportLoading(), 500);
                   
                 } catch (error) {
                   console.error('傳統下載方式失敗:', error);

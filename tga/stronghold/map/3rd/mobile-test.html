@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>手機下載測試 - 據點地圖</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>手機下載功能測試</h1>
+        <div class="info">
+            此頁面用於測試修復後的手機下載功能。請在手機瀏覽器中打開此頁面進行測試。
+        </div>
+        
+        <button class="test-button" onclick="testDownload()">測試下載功能</button>
+        <button class="test-button" onclick="testDeviceDetection()">測試設備檢測</button>
+        <button class="test-button" onclick="testWebShareAPI()">測試 Web Share API</button>
+        
+        <div id="test-result" class="test-result" style="display: none;">
+            <h3>測試結果</h3>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        function showResult(message, type = 'info') {
+            const resultDiv = document.getElementById('test-result');
+            const contentDiv = document.getElementById('result-content');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.className = `test-result ${type}`;
+            contentDiv.innerHTML = message;
+        }
+
+        function testDownload() {
+            showResult('正在測試下載功能...', 'info');
+            
+            try {
+                // 創建一個測試圖片
+                const canvas = document.createElement('canvas');
+                canvas.width = 200;
+                canvas.height = 200;
+                const ctx = canvas.getContext('2d');
+                
+                // 繪製測試圖案
+                ctx.fillStyle = '#007bff';
+                ctx.fillRect(0, 0, 200, 200);
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('測試圖片', 100, 100);
+                ctx.fillText(new Date().toLocaleTimeString(), 100, 130);
+                
+                // 轉換為 Blob
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        downloadFile(blob, 'test-image.png');
+                        showResult('下載測試完成！請檢查是否成功下載了測試圖片。', 'success');
+                    } else {
+                        showResult('創建測試圖片失敗', 'error');
+                    }
+                }, 'image/png');
+                
+            } catch (error) {
+                showResult(`下載測試失敗: ${error.message}`, 'error');
+            }
+        }
+
+        function testDeviceDetection() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                            ('ontouchstart' in window) || 
+                            (navigator.maxTouchPoints > 0);
+            
+            const userAgent = navigator.userAgent;
+            const touchSupport = 'ontouchstart' in window;
+            const maxTouchPoints = navigator.maxTouchPoints;
+            
+            const result = `
+                <strong>設備檢測結果:</strong><br>
+                檢測為移動設備: ${isMobile ? '是' : '否'}<br>
+                用戶代理: ${userAgent}<br>
+                觸摸支持: ${touchSupport ? '是' : '否'}<br>
+                最大觸摸點: ${maxTouchPoints}<br>
+                屏幕尺寸: ${window.innerWidth} x ${window.innerHeight}
+            `;
+            
+            showResult(result, isMobile ? 'success' : 'info');
+        }
+
+        function testWebShareAPI() {
+            if (!navigator.share) {
+                showResult('此瀏覽器不支持 Web Share API', 'error');
+                return;
+            }
+            
+            if (!navigator.canShare) {
+                showResult('Web Share API 可用，但無法檢測文件分享支持', 'info');
+                return;
+            }
+            
+            // 測試文件分享支持
+            const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+            const canShareFiles = navigator.canShare({ files: [testFile] });
+            
+            const result = `
+                <strong>Web Share API 測試結果:</strong><br>
+                navigator.share: ${navigator.share ? '支持' : '不支持'}<br>
+                navigator.canShare: ${navigator.canShare ? '支持' : '不支持'}<br>
+                文件分享支持: ${canShareFiles ? '支持' : '不支持'}
+            `;
+            
+            showResult(result, canShareFiles ? 'success' : 'info');
+        }
+
+        function downloadFile(blob, filename) {
+            try {
+                // 檢測是否為移動設備
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                ('ontouchstart' in window) || 
+                                (navigator.maxTouchPoints > 0);
+                
+                console.log(`設備類型: ${isMobile ? '移動設備' : '桌面設備'}`);
+                
+                // 嘗試使用 Web Share API（僅在支持的移動設備上）
+                if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+                    console.log('嘗試使用 Web Share API');
+                    const file = new File([blob], filename, { type: 'image/png' });
+                    
+                    navigator.share({
+                        files: [file],
+                        title: filename,
+                        text: '測試圖片'
+                    }).then(() => {
+                        console.log('圖片已成功分享！');
+                    }).catch((error) => {
+                        console.log('Web Share API 失敗，使用傳統下載方式:', error);
+                        fallbackDownload(blob, filename);
+                    });
+                } else {
+                    // 使用傳統下載方式
+                    fallbackDownload(blob, filename);
+                }
+            } catch (error) {
+                console.error('下載過程中發生錯誤:', error);
+                fallbackDownload(blob, filename);
+            }
+            
+            function fallbackDownload(blob, filename) {
+                try {
+                    const pngUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = pngUrl;
+                    link.style.display = 'none';
+                    
+                    // 添加必要的屬性以提高兼容性
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
+                    
+                    document.body.appendChild(link);
+                    
+                    // 觸發下載
+                    const clickEvent = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    
+                    // 使用 setTimeout 確保在手機上也能觸發
+                    setTimeout(() => {
+                        link.dispatchEvent(clickEvent);
+                        
+                        // 延遲清理以確保下載完成
+                        setTimeout(() => {
+                            try {
+                                document.body.removeChild(link);
+                            } catch (e) {
+                                console.warn('清理下載鏈接時出錯:', e);
+                            }
+                            URL.revokeObjectURL(pngUrl);
+                        }, isMobile ? 1000 : 100); // 手機上延遲更長時間
+                    }, isMobile ? 100 : 0);
+                    
+                } catch (error) {
+                    console.error('傳統下載方式失敗:', error);
+                    // 最後的備用方案：在新窗口中打開圖片
+                    const pngUrl = URL.createObjectURL(blob);
+                    const newWindow = window.open(pngUrl, '_blank');
+                    if (newWindow) {
+                        console.log('已在新窗口中打開圖片，請手動保存');
+                    } else {
+                        console.error('無法打開新窗口，下載失敗');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

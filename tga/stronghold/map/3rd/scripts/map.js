@@ -1501,53 +1501,100 @@
             updateExportProgress(95);
             
             // 使用更兼容的下載方法，支援手機瀏覽器
-            if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
-              // 手機上使用 Web Share API（如果可用）
-              const file = new File([blob], downloadFilename, { type: 'image/png' });
-              
-              // 先嘗試分享
-              navigator.share({
-                files: [file],
-                title: filename,
-                text: '地圖導出'
-              }).then(() => {
-                console.log('地圖已成功分享！');
-                updateExportProgress(100);
-                setTimeout(() => hideExportLoading(), 500);
-                URL.revokeObjectURL(url);
-              }).catch((error) => {
-                // 如果分享失敗，使用傳統下載方式
-                console.log('分享失敗，使用下載方式:', error);
-                downloadFile(blob, downloadFilename);
-              });
-            } else {
-              // 桌面或不支援 Share API 的設備使用傳統下載
-              downloadFile(blob, downloadFilename);
-            }
+            downloadFile(blob, downloadFilename);
             
             function downloadFile(blob, filename) {
-              const pngUrl = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.download = filename;
-              link.href = pngUrl;
-              link.style.display = 'none';
-              
-              document.body.appendChild(link);
-              
-              // 使用 setTimeout 確保在手機上也能觸發
-              setTimeout(() => {
-                link.click();
+              try {
+                // 檢測是否為移動設備
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                ('ontouchstart' in window) || 
+                                (navigator.maxTouchPoints > 0);
                 
-                // 延遲清理以確保下載完成
-                setTimeout(() => {
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(pngUrl);
+                console.log(`設備類型: ${isMobile ? '移動設備' : '桌面設備'}`);
+                
+                // 嘗試使用 Web Share API（僅在支持的移動設備上）
+                if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+                  console.log('嘗試使用 Web Share API');
+                  const file = new File([blob], filename, { type: 'image/png' });
+                  
+                  navigator.share({
+                    files: [file],
+                    title: filename,
+                    text: '地圖導出'
+                  }).then(() => {
+                    console.log('地圖已成功分享！');
+                    updateExportProgress(100);
+                    setTimeout(() => hideExportLoading(), 500);
+                    URL.revokeObjectURL(url);
+                  }).catch((error) => {
+                    console.log('Web Share API 失敗，使用傳統下載方式:', error);
+                    fallbackDownload(blob, filename);
+                  });
+                } else {
+                  // 使用傳統下載方式
+                  fallbackDownload(blob, filename);
+                }
+              } catch (error) {
+                console.error('下載過程中發生錯誤:', error);
+                fallbackDownload(blob, filename);
+              }
+              
+              function fallbackDownload(blob, filename) {
+                try {
+                  const pngUrl = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.download = filename;
+                  link.href = pngUrl;
+                  link.style.display = 'none';
+                  
+                  // 添加必要的屬性以提高兼容性
+                  link.setAttribute('target', '_blank');
+                  link.setAttribute('rel', 'noopener noreferrer');
+                  
+                  document.body.appendChild(link);
+                  
+                  // 觸發下載
+                  const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                  });
+                  
+                  // 使用 setTimeout 確保在手機上也能觸發
+                  setTimeout(() => {
+                    link.dispatchEvent(clickEvent);
+                    
+                    // 延遲清理以確保下載完成
+                    setTimeout(() => {
+                      try {
+                        document.body.removeChild(link);
+                      } catch (e) {
+                        console.warn('清理下載鏈接時出錯:', e);
+                      }
+                      URL.revokeObjectURL(pngUrl);
+                      URL.revokeObjectURL(url);
+                      console.log('地圖已成功導出！');
+                      updateExportProgress(100);
+                      setTimeout(() => hideExportLoading(), 500);
+                    }, isMobile ? 1000 : 100); // 手機上延遲更長時間
+                  }, isMobile ? 100 : 0);
+                  
+                } catch (error) {
+                  console.error('傳統下載方式失敗:', error);
+                  // 最後的備用方案：在新窗口中打開圖片
+                  const pngUrl = URL.createObjectURL(blob);
+                  const newWindow = window.open(pngUrl, '_blank');
+                  if (newWindow) {
+                    console.log('已在新窗口中打開圖片，請手動保存');
+                    updateExportProgress(100);
+                    setTimeout(() => hideExportLoading(), 500);
+                  } else {
+                    console.error('無法打開新窗口，下載失敗');
+                    hideExportLoading();
+                  }
                   URL.revokeObjectURL(url);
-                  console.log('地圖已成功導出！');
-                  updateExportProgress(100);
-                  setTimeout(() => hideExportLoading(), 500);
-                }, 100);
-              }, 0);
+                }
+              }
             }
           }, 'image/png', quality); // 使用選中的品質設定
         };
@@ -1607,47 +1654,100 @@
             const downloadFilename = `${filename}-${timestamp}.png`;
             
             // 使用更兼容的下載方法，支援手機瀏覽器
-            if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
-              const file = new File([blob], downloadFilename, { type: 'image/png' });
-              
-              navigator.share({
-                files: [file],
-                title: filename,
-                text: '地圖導出'
-              }).then(() => {
-                console.log('地圖已成功分享（無背景）！');
-                updateExportProgress(100);
-                setTimeout(() => hideExportLoading(), 500);
-                URL.revokeObjectURL(url);
-              }).catch((error) => {
-                console.log('分享失敗，使用下載方式:', error);
-                downloadFile(blob, downloadFilename);
-              });
-            } else {
-              downloadFile(blob, downloadFilename);
-            }
+            downloadFile(blob, downloadFilename);
             
             function downloadFile(blob, filename) {
-              const pngUrl = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.download = filename;
-              link.href = pngUrl;
-              link.style.display = 'none';
-              
-              document.body.appendChild(link);
-              
-              setTimeout(() => {
-                link.click();
+              try {
+                // 檢測是否為移動設備
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                                ('ontouchstart' in window) || 
+                                (navigator.maxTouchPoints > 0);
                 
-                setTimeout(() => {
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(pngUrl);
+                console.log(`設備類型: ${isMobile ? '移動設備' : '桌面設備'}`);
+                
+                // 嘗試使用 Web Share API（僅在支持的移動設備上）
+                if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], filename, { type: 'image/png' })] })) {
+                  console.log('嘗試使用 Web Share API');
+                  const file = new File([blob], filename, { type: 'image/png' });
+                  
+                  navigator.share({
+                    files: [file],
+                    title: filename,
+                    text: '地圖導出'
+                  }).then(() => {
+                    console.log('地圖已成功分享（無背景）！');
+                    updateExportProgress(100);
+                    setTimeout(() => hideExportLoading(), 500);
+                    URL.revokeObjectURL(url);
+                  }).catch((error) => {
+                    console.log('Web Share API 失敗，使用傳統下載方式:', error);
+                    fallbackDownload(blob, filename);
+                  });
+                } else {
+                  // 使用傳統下載方式
+                  fallbackDownload(blob, filename);
+                }
+              } catch (error) {
+                console.error('下載過程中發生錯誤:', error);
+                fallbackDownload(blob, filename);
+              }
+              
+              function fallbackDownload(blob, filename) {
+                try {
+                  const pngUrl = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.download = filename;
+                  link.href = pngUrl;
+                  link.style.display = 'none';
+                  
+                  // 添加必要的屬性以提高兼容性
+                  link.setAttribute('target', '_blank');
+                  link.setAttribute('rel', 'noopener noreferrer');
+                  
+                  document.body.appendChild(link);
+                  
+                  // 觸發下載
+                  const clickEvent = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                  });
+                  
+                  // 使用 setTimeout 確保在手機上也能觸發
+                  setTimeout(() => {
+                    link.dispatchEvent(clickEvent);
+                    
+                    // 延遲清理以確保下載完成
+                    setTimeout(() => {
+                      try {
+                        document.body.removeChild(link);
+                      } catch (e) {
+                        console.warn('清理下載鏈接時出錯:', e);
+                      }
+                      URL.revokeObjectURL(pngUrl);
+                      URL.revokeObjectURL(url);
+                      console.log('地圖已成功導出（無背景）！');
+                      updateExportProgress(100);
+                      setTimeout(() => hideExportLoading(), 500);
+                    }, isMobile ? 1000 : 100); // 手機上延遲更長時間
+                  }, isMobile ? 100 : 0);
+                  
+                } catch (error) {
+                  console.error('傳統下載方式失敗:', error);
+                  // 最後的備用方案：在新窗口中打開圖片
+                  const pngUrl = URL.createObjectURL(blob);
+                  const newWindow = window.open(pngUrl, '_blank');
+                  if (newWindow) {
+                    console.log('已在新窗口中打開圖片，請手動保存');
+                    updateExportProgress(100);
+                    setTimeout(() => hideExportLoading(), 500);
+                  } else {
+                    console.error('無法打開新窗口，下載失敗');
+                    hideExportLoading();
+                  }
                   URL.revokeObjectURL(url);
-                  console.log('地圖已成功導出（無背景）！');
-                  updateExportProgress(100);
-                  setTimeout(() => hideExportLoading(), 500);
-                }, 100);
-              }, 0);
+                }
+              }
             }
           }, 'image/png', quality); // 使用選中的品質設定
         };
@@ -1682,6 +1782,14 @@
       }
       
       loadingOverlay.classList.add('active');
+      
+      // 設置超時機制，防止無限等待
+      setTimeout(() => {
+        if (loadingOverlay.classList.contains('active')) {
+          console.warn('導出超時，強制關閉載入動畫');
+          hideExportLoading();
+        }
+      }, 30000); // 30秒超時
     }
   }
   
@@ -1722,6 +1830,28 @@
     // 重置進度條
     updateExportProgress(0);
   }
+  
+  // 全局錯誤處理，確保載入動畫不會卡住
+  window.addEventListener('error', (event) => {
+    console.error('全局錯誤:', event.error);
+    // 如果載入動畫正在顯示，強制關閉
+    const loadingOverlay = document.getElementById('export-loading');
+    if (loadingOverlay && loadingOverlay.classList.contains('active')) {
+      console.warn('檢測到錯誤，強制關閉載入動畫');
+      hideExportLoading();
+    }
+  });
+  
+  // 處理未捕獲的 Promise 拒絕
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('未處理的 Promise 拒絕:', event.reason);
+    // 如果載入動畫正在顯示，強制關閉
+    const loadingOverlay = document.getElementById('export-loading');
+    if (loadingOverlay && loadingOverlay.classList.contains('active')) {
+      console.warn('檢測到 Promise 拒絕，強制關閉載入動畫');
+      hideExportLoading();
+    }
+  });
   
   function updateExportProgress(percent) {
     const progressBar = document.getElementById('export-progress-bar');

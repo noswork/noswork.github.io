@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#4CAF50"/>
+  <g stroke="#fff" stroke-width="2" fill="none">
+    <!-- 迷宮圖案 -->
+    <path d="M4 4 L4 28 L28 28 L28 4 L4 4"/>
+    <path d="M8 4 L8 12"/>
+    <path d="M12 8 L20 8"/>
+    <path d="M12 12 L12 20"/>
+    <path d="M16 4 L16 8"/>
+    <path d="M20 12 L28 12"/>
+    <path d="M20 16 L20 24"/>
+    <path d="M8 16 L12 16"/>
+    <path d="M4 20 L8 20"/>
+    <path d="M16 20 L16 28"/>
+    <path d="M8 24 L12 24"/>
+    <path d="M24 16 L24 20"/>
+    <path d="M24 24 L28 24"/>
+  </g>
+  <!-- 入口標記 (紅點) -->
+  <circle cx="6" cy="6" r="1.5" fill="#ff5252"/>
+  <!-- 出口標記 (綠點) -->
+  <circle cx="26" cy="26" r="1.5" fill="#64ffda"/>
+</svg>
+

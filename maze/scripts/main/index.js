@@ -4,15 +4,19 @@ import { AuthService } from '../auth/authService.js';
 import { getTranslation } from '../utils/translation.js';
 
 const createTabManager = () => {
-    let currentTab = 'just-maze';
-    let currentRaceMode = 'classic';
+    // 恢復保存的 tab 狀態，如果沒有則使用默認值
+    let currentTab = localStorage.getItem('maze-current-tab') || 'just-maze';
+    let currentRaceMode = localStorage.getItem('maze-current-race-mode') || 'classic';
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     const raceSubButtons = document.querySelectorAll('.race-sub-btn');
     const raceModeContents = document.querySelectorAll('.race-mode-content');
 
-    const switchTab = (tabId) => {
+    const switchTab = (tabId, saveState = true) => {
         currentTab = tabId;
+        if (saveState) {
+            localStorage.setItem('maze-current-tab', tabId);
+        }
         tabButtons.forEach((btn) => {
             btn.classList.toggle('active', btn.dataset.tab === tabId);
         });
@@ -21,8 +25,11 @@ const createTabManager = () => {
         });
     };
 
-    const switchRaceMode = (raceMode) => {
+    const switchRaceMode = (raceMode, saveState = true) => {
         currentRaceMode = raceMode;
+        if (saveState) {
+            localStorage.setItem('maze-current-race-mode', raceMode);
+        }
         raceSubButtons.forEach((btn) => {
             btn.classList.toggle('active', btn.dataset.raceMode === raceMode);
         });
@@ -47,10 +54,16 @@ const createTabManager = () => {
         });
     });
 
+    // 恢復上次的 tab 狀態
+    switchTab(currentTab, false);
+    if (currentTab === 'race') {
+        switchRaceMode(currentRaceMode, false);
+    }
+
     return { switchTab, getCurrentTab: () => currentTab, switchRaceMode, getCurrentRaceMode: () => currentRaceMode };
 };
 
-const setupGameButtons = ({ authService, authModal, settingsManager }) => {
+const setupGameButtons = ({ authService, authModal, settingsManager, tabManager }) => {
     const buttons = document.querySelectorAll('.game-btn');
     buttons.forEach((button) => {
         button.addEventListener('click', () => {
@@ -71,6 +84,12 @@ const setupGameButtons = ({ authService, authModal, settingsManager }) => {
                 authModal.setStatus(getTranslation(settingsManager.getLanguage(), 'auth.requireSignIn'), 'error');
                 return;
             }
+
+            // 在跳轉前保存當前 tab 狀態
+            const currentTab = tabManager.getCurrentTab();
+            const currentRaceMode = tabManager.getCurrentRaceMode();
+            localStorage.setItem('maze-current-tab', currentTab);
+            localStorage.setItem('maze-current-race-mode', currentRaceMode);
 
             window.location.href = `game.html?${params.toString()}`;
         });
@@ -148,6 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    setupGameButtons({ authService, authModal, settingsManager });
+    setupGameButtons({ authService, authModal, settingsManager, tabManager });
 });
 

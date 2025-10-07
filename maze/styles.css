@@ -1631,7 +1631,8 @@ html.theme-dark .auth-footer-text {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.dpad-btn:active {
+.dpad-btn:active,
+.dpad-btn.dpad-pressed {
     background-color: var(--accent-color);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
@@ -1642,7 +1643,8 @@ html.theme-dark .auth-footer-text {
     transform: translateX(-50%) translateY(0);
 }
 
-.dpad-up:active {
+.dpad-up:active,
+.dpad-up.dpad-pressed {
     transform: translateX(-50%) translateY(-3px) !important;
 }
 
@@ -1652,7 +1654,8 @@ html.theme-dark .auth-footer-text {
     transform: translateX(-50%) translateY(0);
 }
 
-.dpad-down:active {
+.dpad-down:active,
+.dpad-down.dpad-pressed {
     transform: translateX(-50%) translateY(3px) !important;
 }
 
@@ -1662,7 +1665,8 @@ html.theme-dark .auth-footer-text {
     transform: translateY(-50%) translateX(0);
 }
 
-.dpad-left:active {
+.dpad-left:active,
+.dpad-left.dpad-pressed {
     transform: translateY(-50%) translateX(-3px) !important;
 }
 
@@ -1672,7 +1676,8 @@ html.theme-dark .auth-footer-text {
     transform: translateY(-50%) translateX(0);
 }
 
-.dpad-right:active {
+.dpad-right:active,
+.dpad-right.dpad-pressed {
     transform: translateY(-50%) translateX(3px) !important;
 }
 

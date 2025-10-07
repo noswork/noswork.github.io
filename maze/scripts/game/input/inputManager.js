@@ -131,29 +131,31 @@ export class InputManager {
                 this.onMove(dx, dy);
             });
 
-            // 添加觸摸事件
+            // 添加觸摸事件（合併觸摸反饋和移動邏輯）
             button.addEventListener('touchstart', (event) => {
                 event.preventDefault();
+                event.stopPropagation(); // 防止事件冒泡
                 if (!this.isInteractable()) return;
+                
+                // 添加視覺反饋 - 使用 class 而不是直接修改 style
+                button.classList.add('dpad-pressed');
                 this.onMove(dx, dy);
-            });
+            }, { passive: false });
+
+            button.addEventListener('touchend', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                button.classList.remove('dpad-pressed');
+            }, { passive: false });
+
+            button.addEventListener('touchcancel', (event) => {
+                event.preventDefault();
+                button.classList.remove('dpad-pressed');
+            }, { passive: false });
 
             // 防止右鍵菜單
             button.addEventListener('contextmenu', (event) => {
                 event.preventDefault();
-            });
-
-            // 添加觸摸反饋
-            button.addEventListener('touchstart', () => {
-                button.style.transform = 'scale(0.95)';
-            });
-
-            button.addEventListener('touchend', () => {
-                button.style.transform = 'scale(1)';
-            });
-
-            button.addEventListener('touchcancel', () => {
-                button.style.transform = 'scale(1)';
             });
         };
 

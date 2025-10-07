@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>方向鍵診斷工具</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #1f2937;
+            --button-bg: #f3f4f6;
+            --button-text: #1f2937;
+            --accent-color: #3b82f6;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .diagnostic-container {
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-box {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .log {
+            background: #1f2937;
+            color: #10b981;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            margin: 2px 0;
+        }
+
+        .test-area {
+            position: relative;
+            height: 400px;
+            background: #f3f4f6;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* D-Pad Styles */
+        .dpad-container {
+            position: fixed;
+            bottom: 1.5rem;
+            bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 150px;
+            display: block;
+            z-index: 2000;
+            pointer-events: none;
+            border: 2px dashed #f59e0b;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: 2px solid var(--button-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            touch-action: manipulation;
+            pointer-events: auto;
+            font-size: 20px;
+        }
+
+        .dpad-btn:active,
+        .dpad-btn.dpad-pressed {
+            background-color: var(--accent-color);
+            color: white;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dpad-up {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .dpad-up:active,
+        .dpad-up.dpad-pressed {
+            transform: translateX(-50%) translateY(-3px) !important;
+        }
+
+        .dpad-down {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .dpad-down:active,
+        .dpad-down.dpad-pressed {
+            transform: translateX(-50%) translateY(3px) !important;
+        }
+
+        .dpad-left {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .dpad-left:active,
+        .dpad-left.dpad-pressed {
+            transform: translateY(-50%) translateX(-3px) !important;
+        }
+
+        .dpad-right {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%) translateX(0);
+        }
+
+        .dpad-right:active,
+        .dpad-right.dpad-pressed {
+            transform: translateY(-50%) translateX(3px) !important;
+        }
+
+        .dpad-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 35px;
+            height: 35px;
+            background-color: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="diagnostic-container">
+        <h1>🔍 方向鍵診斷工具</h1>
+        
+        <div class="info-box">
+            <strong>📱 螢幕資訊：</strong>
+            <div id="screenInfo"></div>
+        </div>
+
+        <div class="info-box">
+            <strong>📍 方向鍵容器資訊：</strong>
+            <div id="containerInfo"></div>
+        </div>
+
+        <div class="log" id="eventLog">
+            <div class="log-entry">等待互動...</div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">上</div>
+                <div class="stat-value" id="upCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">下</div>
+                <div class="stat-value" id="downCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">左</div>
+                <div class="stat-value" id="leftCount">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">右</div>
+                <div class="stat-value" id="rightCount">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dpad-container" id="dpadContainer">
+        <button class="dpad-btn dpad-up" id="dpadUp">↑</button>
+        <button class="dpad-btn dpad-down" id="dpadDown">↓</button>
+        <button class="dpad-btn dpad-left" id="dpadLeft">←</button>
+        <button class="dpad-btn dpad-right" id="dpadRight">→</button>
+        <div class="dpad-center"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('eventLog');
+        const counts = {
+            up: 0,
+            down: 0,
+            left: 0,
+            right: 0
+        };
+
+        function addLog(message, color = '#10b981') {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = color;
+            const time = new Date().toLocaleTimeString();
+            entry.textContent = `[${time}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function updateScreenInfo() {
+            const screenInfo = document.getElementById('screenInfo');
+            screenInfo.innerHTML = `
+                寬度: ${window.innerWidth}px<br>
+                高度: ${window.innerHeight}px<br>
+                裝置像素比: ${window.devicePixelRatio}<br>
+                觸控支援: ${('ontouchstart' in window) ? '是' : '否'}
+            `;
+        }
+
+        function updateContainerInfo() {
+            const container = document.getElementById('dpadContainer');
+            const rect = container.getBoundingClientRect();
+            const containerInfo = document.getElementById('containerInfo');
+            containerInfo.innerHTML = `
+                位置: (${Math.round(rect.left)}, ${Math.round(rect.top)})<br>
+                尺寸: ${Math.round(rect.width)}x${Math.round(rect.height)}<br>
+                底部距離: ${Math.round(window.innerHeight - rect.bottom)}px
+            `;
+        }
+
+        function setupDpad() {
+            const buttons = [
+                { id: 'dpadUp', name: '上', key: 'up', emoji: '⬆️' },
+                { id: 'dpadDown', name: '下', key: 'down', emoji: '⬇️' },
+                { id: 'dpadLeft', name: '左', key: 'left', emoji: '⬅️' },
+                { id: 'dpadRight', name: '右', key: 'right', emoji: '➡️' }
+            ];
+
+            buttons.forEach(({ id, name, key, emoji }) => {
+                const btn = document.getElementById(id);
+                
+                // Click event
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    counts[key]++;
+                    document.getElementById(key + 'Count').textContent = counts[key];
+                    addLog(`${emoji} ${name} (Click)`, '#3b82f6');
+                });
+
+                // Touch events
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    btn.classList.add('dpad-pressed');
+                    counts[key]++;
+                    document.getElementById(key + 'Count').textContent = counts[key];
+                    addLog(`${emoji} ${name} (Touch Start)`, '#10b981');
+                }, { passive: false });
+
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    btn.classList.remove('dpad-pressed');
+                    addLog(`${emoji} ${name} (Touch End)`, '#6b7280');
+                }, { passive: false });
+
+                btn.addEventListener('touchcancel', (e) => {
+                    e.preventDefault();
+                    btn.classList.remove('dpad-pressed');
+                    addLog(`${emoji} ${name} (Touch Cancel)`, '#ef4444');
+                }, { passive: false });
+
+                // Context menu
+                btn.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+
+                addLog(`✅ ${name} 按鈕已綁定`, '#a855f7');
+            });
+        }
+
+        // Initialize
+        updateScreenInfo();
+        updateContainerInfo();
+        setupDpad();
+
+        // Update on resize
+        window.addEventListener('resize', () => {
+            updateScreenInfo();
+            updateContainerInfo();
+        });
+
+        addLog('🎮 診斷工具已就緒', '#f59e0b');
+    </script>
+</body>
+</html>
+

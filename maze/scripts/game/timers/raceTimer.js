@@ -26,6 +26,12 @@ export class RaceTimer {
 
     clear() {
         if (this.interval) {
+            // 在清除前更新最終時間，確保精確度
+            this.elapsedSeconds = Math.round((Date.now() - this.startTime) / 10) / 100;
+            // 觸發最後一次更新，確保狀態同步
+            if (this.onTick) {
+                this.onTick(this.elapsedSeconds);
+            }
             clearInterval(this.interval);
             this.interval = null;
         }

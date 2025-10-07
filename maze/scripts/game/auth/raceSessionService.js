@@ -127,7 +127,7 @@ export class RaceSessionService {
                 throw new Error(result?.error?.code || 'UNKNOWN_RESULT');
             }
 
-            if (result.personal_best) {
+            if (result.result?.personal_best) {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.personalBestSaved'), 'success');
             } else {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.leaderboardNoImprovement'), 'info');

@@ -30,7 +30,17 @@ const formatDate = (isoString) => {
     if (!isoString) return '--';
     try {
         const date = new Date(isoString);
-        return date.toLocaleDateString();
+        // 轉換為 +8 時區（台北時區）
+        const options = {
+            timeZone: 'Asia/Taipei',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        };
+        return new Intl.DateTimeFormat('zh-TW', options).format(date);
     } catch (_error) {
         return isoString;
     }

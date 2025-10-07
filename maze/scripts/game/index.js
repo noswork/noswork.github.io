@@ -307,15 +307,21 @@ class MazeGame {
         const clientTime = this.state.race.elapsed;
         const totalSteps = this.state.race.totalSteps + this.state.stepCount;
 
+        console.log('[Race] Client time:', clientTime, 'steps:', totalSteps);
+
         // 提交結果並獲取伺服器計算的時間
         const serverResult = await this.raceSessionService.submitResult({
             totalSeconds: clientTime,
             totalSteps
         });
 
+        console.log('[Race] Server result:', serverResult);
+
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
         const finalSteps = serverResult?.total_steps ?? totalSteps;
+
+        console.log('[Race] Final time shown:', finalTime, 'formatted:', formatTime(finalTime));
 
         const totalTimeStr = formatTime(finalTime);
         this.uiManager.showWinModal({
@@ -331,15 +337,21 @@ class MazeGame {
         const clientTime = this.state.race.elapsed;
         const totalSteps = this.state.stepCount;
 
+        console.log('[Dark] Client time:', clientTime, 'steps:', totalSteps);
+
         // 提交結果並獲取伺服器計算的時間
         const serverResult = await this.raceSessionService.submitResult({
             totalSeconds: clientTime,
             totalSteps
         });
 
+        console.log('[Dark] Server result:', serverResult);
+
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
         const finalSteps = serverResult?.total_steps ?? totalSteps;
+
+        console.log('[Dark] Final time shown:', finalTime, 'formatted:', formatTime(finalTime));
 
         const totalTimeStr = formatTime(finalTime);
         this.uiManager.showWinModal({

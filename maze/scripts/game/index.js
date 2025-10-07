@@ -146,8 +146,12 @@ class MazeGame {
     setupCanvas() {
         const isMobile = window.innerWidth <= 768;
         const maxWidth = Math.min(window.innerWidth - 40, 900);
-        const verticalReserve = isMobile ? 350 : 200; // 增加手機端的垂直預留空間
-        const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 600 : 800);
+        const safeAreaBottom = isMobile ? Math.max(0, window.visualViewport?.height ? (window.innerHeight - window.visualViewport.height) : 0) : 0;
+        const baseReserve = isMobile
+            ? Math.max(240, Math.min(320, window.innerHeight * 0.38))
+            : Math.max(180, Math.min(260, window.innerHeight * 0.25));
+        const verticalReserve = baseReserve + safeAreaBottom;
+        const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 720 : 820);
         const maxSize = Math.min(maxWidth, maxHeight);
 
         const cellSize = Math.floor(maxSize / this.state.gridSize);
@@ -160,6 +164,9 @@ class MazeGame {
         // 處理手機端視窗高度變化
         if (isMobile) {
             this.handleMobileViewportChange();
+            document.body.classList.add('body-game-active');
+        } else {
+            document.body.classList.remove('body-game-active');
         }
 
         window.addEventListener('resize', () => {

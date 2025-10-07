@@ -11,7 +11,8 @@ export class RaceTimer {
         this.clear();
         this.startTime = Date.now();
         this.interval = setInterval(() => {
-            this.elapsedSeconds = Math.floor((Date.now() - this.startTime) / 1000);
+            // 保留小數點後2位的精確時間
+            this.elapsedSeconds = Math.round((Date.now() - this.startTime) / 10) / 100;
             this.onTick(this.elapsedSeconds);
         }, 100);
     }

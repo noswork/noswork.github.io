@@ -378,9 +378,10 @@ serve(async (req) => {
             });
         }
 
-        const serverSeconds = Math.max(1, Math.round(elapsedMs / 1000));
+        // 保留小數點後2位的時間精確度
+        const serverSeconds = Math.max(0.01, Math.round(elapsedMs / 10) / 100);
         const clientSeconds = typeof clientSecondsRaw === "number" && Number.isFinite(clientSecondsRaw)
-            ? Math.max(0, Math.round(clientSecondsRaw))
+            ? Math.max(0, Math.round(clientSecondsRaw * 100) / 100)
             : null;
         const sanitizedSteps = sanitizeSteps(stepsRaw, session.target);
 

@@ -19,7 +19,9 @@ const MAZE_SIZES = {
 const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+    // 顯示小數點後2位
+    const secsStr = secs.toFixed(2).padStart(5, '0');
+    return `${minutes}:${secsStr}`;
 };
 
 class MazeGame {
@@ -148,11 +150,11 @@ class MazeGame {
         const maxWidth = Math.min(window.innerWidth - 40, 900);
         
         // 手機端：計算可用高度
-        // Header 大約 120px (包含間距)
-        // 方向鍵區域約 200px (高度 + 安全距離)
+        // Header 大約 100px (包含間距)
+        // 方向鍵區域約 220px (高度 + 底部距離 + 安全距離)
         // game-status 區域約 40px
-        // 額外安全邊距 40px
-        const verticalReserve = isMobile ? 400 : 200;
+        // 額外上下邊距 20px
+        const verticalReserve = isMobile ? 380 : 200;
         const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 600 : 820);
         const maxSize = Math.min(maxWidth, maxHeight);
 
@@ -299,41 +301,51 @@ class MazeGame {
         }
     }
 
-    completeRace() {
+    async completeRace() {
         this.state.gameWon = true;
         this.raceTimer.clear();
-        const totalTime = this.state.race.elapsed;
+        const clientTime = this.state.race.elapsed;
         const totalSteps = this.state.race.totalSteps + this.state.stepCount;
 
-        const totalTimeStr = formatTime(totalTime);
-        this.uiManager.showWinModal({
-            totalTime: totalTimeStr,
-            totalSteps,
-            mode: 'race'
+        // 提交結果並獲取伺服器計算的時間
+        const serverResult = await this.raceSessionService.submitResult({
+            totalSeconds: clientTime,
+            totalSteps
         });
 
-        this.raceSessionService.submitResult({
-            totalSeconds: totalTime,
-            totalSteps
+        // 使用伺服器返回的時間，如果沒有則使用客戶端時間
+        const finalTime = serverResult?.total_seconds ?? clientTime;
+        const finalSteps = serverResult?.total_steps ?? totalSteps;
+
+        const totalTimeStr = formatTime(finalTime);
+        this.uiManager.showWinModal({
+            totalTime: totalTimeStr,
+            totalSteps: finalSteps,
+            mode: 'race'
         });
     }
 
-    completeDarkMaze() {
+    async completeDarkMaze() {
         this.state.gameWon = true;
         this.raceTimer.clear();
-        const totalTime = this.state.race.elapsed;
+        const clientTime = this.state.race.elapsed;
         const totalSteps = this.state.stepCount;
 
-        const totalTimeStr = formatTime(totalTime);
-        this.uiManager.showWinModal({
-            totalTime: totalTimeStr,
-            totalSteps,
-            mode: 'dark'
+        // 提交結果並獲取伺服器計算的時間
+        const serverResult = await this.raceSessionService.submitResult({
+            totalSeconds: clientTime,
+            totalSteps
         });
 
-        this.raceSessionService.submitResult({
-            totalSeconds: totalTime,
-            totalSteps
+        // 使用伺服器返回的時間，如果沒有則使用客戶端時間
+        const finalTime = serverResult?.total_seconds ?? clientTime;
+        const finalSteps = serverResult?.total_steps ?? totalSteps;
+
+        const totalTimeStr = formatTime(finalTime);
+        this.uiManager.showWinModal({
+            totalTime: totalTimeStr,
+            totalSteps: finalSteps,
+            mode: 'dark'
         });
     }
 

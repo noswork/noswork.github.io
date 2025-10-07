@@ -1508,12 +1508,13 @@ html.theme-dark .auth-footer-text {
 .canvas-wrapper {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* 從頂部開始對齊，而不是居中 */
     justify-content: center;
     width: 100%;
     max-width: 900px;
     overflow: hidden;
     min-height: 0; /* 允許 flex 項目縮小 */
+    padding-top: 1rem; /* 添加頂部間距 */
 }
 
 .back-btn, .menu-btn {
@@ -1747,7 +1748,9 @@ html.theme-dark .auth-footer-text {
     .canvas-wrapper {
         margin-bottom: 0;
         padding-bottom: 0;
+        padding-top: 0.5rem; /* 手機端減少頂部間距 */
         flex-shrink: 1; /* 允許在空間不足時縮小 */
+        align-items: flex-start; /* 確保從頂部對齊 */
     }
 }
 

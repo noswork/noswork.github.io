@@ -18,10 +18,12 @@ const leaderboardConfig = {
 };
 
 const formatSeconds = (totalSeconds) => {
-    if (typeof totalSeconds !== 'number') return '--:--';
+    if (typeof totalSeconds !== 'number') return '--:--.--';
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    // 顯示小數點後2位
+    const secsStr = seconds.toFixed(2).padStart(5, '0');
+    return `${minutes}:${secsStr}`;
 };
 
 const formatDate = (isoString) => {

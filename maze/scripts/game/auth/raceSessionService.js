@@ -93,7 +93,7 @@ export class RaceSessionService {
         if (!this.session?.id) {
             const lang = this.settingsManager.getLanguage();
             this.showStatus(getTranslation(lang, 'game.sessionMissing'), 'error');
-            return;
+            return null;
         }
 
         try {
@@ -127,15 +127,19 @@ export class RaceSessionService {
                 throw new Error(result?.error?.code || 'UNKNOWN_RESULT');
             }
 
-            if (result.result?.personal_best) {
+            if (result.personal_best) {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.personalBestSaved'), 'success');
             } else {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.leaderboardNoImprovement'), 'info');
             }
+
+            // 返回伺服器計算的結果
+            return result.result;
         } catch (error) {
             console.error('[Race] Verified result submission failed', error);
             const lang = this.settingsManager.getLanguage();
             this.showStatus(getTranslation(lang, 'game.sessionCompleteFailed'), 'error');
+            return null;
         } finally {
             this.session = null;
         }

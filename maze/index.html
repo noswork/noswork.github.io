@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOS MAZE</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 預加載主題和語言 - 防止閃爍 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('maze-theme') || 'light';
+            const savedLang = localStorage.getItem('maze-lang') || 'zh';
+            
+            // 處理系統主題
+            let actualTheme = savedTheme;
+            if (savedTheme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                actualTheme = prefersDark ? 'dark' : 'light';
+            }
+            
+            document.documentElement.className = 'theme-' + actualTheme;
+            document.documentElement.lang = savedLang === 'zh' ? 'zh-TW' : 'en';
+            
+            // 儲存語言設定供後續使用
+            window.__MAZE_PRELOAD_LANG__ = savedLang;
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="supabase-config.js" defer></script>
+    <script src="supabase-client.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script type="module" src="scripts/main/index.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <!-- Header Left: Leaderboard Button -->
+            <div class="header-left">
+                <button class="header-nav-btn" id="leaderboardBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z"/>
+                    </svg>
+                    <span data-i18n="nav.leaderboard">排行榜</span>
+                </button>
+            </div>
+            
+            <!-- Header Center: Title -->
+            <h1 class="site-title">
+                <div>NOS</div>
+                <div>MAZE</div>
+            </h1>
+            
+            <!-- Header Right: User Status & Settings -->
+            <div class="header-right">
+                <div class="user-status user-status-loading" id="userStatus">
+                    <span class="loading-placeholder"></span>
+                </div>
+                <button class="settings-btn" id="settingsBtn" aria-label="Settings">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="just-maze" data-i18n="tab.justMaze">Just Maze</button>
+            <button class="tab-btn" data-tab="faultless" data-i18n="tab.faultless">Faultless</button>
+            <button class="tab-btn" data-tab="race" data-i18n="tab.race">Race Clock</button>
+        </nav>
+
+        <main class="tab-content-wrapper">
+            <!-- Just Maze Tab -->
+            <div class="tab-content active" id="just-maze-tab">
+                <p class="description" data-i18n="desc.justMaze">Straight up mazes for those who want to lose themselves with no stress, or at least a little stress.</p>
+                <div class="button-grid">
+                    <button class="game-btn" data-mode="just-maze" data-size="mini">
+                        <span data-i18n="size.mini">Mini Maze</span>
+                    </button>
+                    <button class="game-btn" data-mode="just-maze" data-size="medium">
+                        <span data-i18n="size.medium">Medium Maze</span>
+                    </button>
+                    <button class="game-btn" data-mode="just-maze" data-size="mighty">
+                        <span data-i18n="size.mighty">Mighty Maze</span>
+                    </button>
+                    <button class="game-btn" data-mode="just-maze" data-size="mega">
+                        <span data-i18n="size.mega">Mega Maze</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Faultless Tab -->
+            <div class="tab-content" id="faultless-tab">
+                <p class="description" data-i18n="desc.faultless">Complete the maze with no backtracking or wall hitting allowed. One mistake sends you back to start. It's harder than you think.</p>
+                <div class="button-grid">
+                    <button class="game-btn" data-mode="faultless" data-size="mini">
+                        <span data-i18n="size.faultlessMini">Faultless Mini</span>
+                    </button>
+                    <button class="game-btn" data-mode="faultless" data-size="medium">
+                        <span data-i18n="size.faultlessMedium">Faultless Medium</span>
+                    </button>
+                    <button class="game-btn" data-mode="faultless" data-size="mighty">
+                        <span data-i18n="size.faultlessMighty">Faultless Mighty</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Race the Clock Tab -->
+            <div class="tab-content" id="race-tab">
+                <p class="description" data-i18n="desc.race">挑战完成指定数量的迷宫，看看你能多快完成！</p>
+                
+                <!-- Race Mode Sub-tabs -->
+                <nav class="race-sub-nav">
+                    <button class="race-sub-btn active" data-race-mode="classic" data-i18n="race.classic">經典模式</button>
+                    <button class="race-sub-btn" data-race-mode="dark" data-i18n="race.dark">黑暗模式</button>
+                </nav>
+
+                <!-- Classic Race Mode -->
+                <div class="race-mode-content active" id="classic-race">
+                    <div class="race-grid">
+                        <div class="race-option">
+                            <h3 data-i18n="size.teensy">微型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn" data-mode="race" data-size="teensy" data-count="5">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">5</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="teensy" data-count="10">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">10</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="teensy" data-count="20">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">20</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.mini">小型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn" data-mode="race" data-size="mini" data-count="5">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">5</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="mini" data-count="10">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">10</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="mini" data-count="15">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">15</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.medium">中型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn" data-mode="race" data-size="medium" data-count="3">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">3</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="medium" data-count="5">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">5</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                                <button class="game-btn race-btn" data-mode="race" data-size="medium" data-count="10">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"/>
+                                        <path d="M12 6v6l4 2"/>
+                                    </svg>
+                                    <span class="count-number">10</span>
+                                    <span class="count-label" data-i18n="race.mazes">个迷宫</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dark Race Mode -->
+                <div class="race-mode-content" id="dark-race">
+                    <p class="mode-description" data-i18n="desc.dark">在黑暗中探索迷宮，只能看見一小塊區域。考驗你的記憶力和方向感！</p>
+                    <div class="race-grid">
+                        <div class="race-option">
+                            <h3 data-i18n="size.teensy">微型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn dark-btn" data-mode="dark" data-size="teensy" data-count="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.79 9.79 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32z"/>
+                                    </svg>
+                                    <span class="count-label" data-i18n="dark.single">單一迷宮</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.mini">小型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn dark-btn" data-mode="dark" data-size="mini" data-count="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.79 9.79 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32z"/>
+                                    </svg>
+                                    <span class="count-label" data-i18n="dark.single">單一迷宮</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.medium">中型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn dark-btn" data-mode="dark" data-size="medium" data-count="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.79 9.79 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32z"/>
+                                    </svg>
+                                    <span class="count-label" data-i18n="dark.single">單一迷宮</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.mighty">大型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn dark-btn" data-mode="dark" data-size="mighty" data-count="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.79 9.79 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32z"/>
+                                    </svg>
+                                    <span class="count-label" data-i18n="dark.single">單一迷宮</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="race-option">
+                            <h3 data-i18n="size.mega">超大型</h3>
+                            <div class="race-count-group">
+                                <button class="game-btn race-btn dark-btn" data-mode="dark" data-size="mega" data-count="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.79 9.79 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32z"/>
+                                    </svg>
+                                    <span class="count-label" data-i18n="dark.single">單一迷宮</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="social-links">
+                <a href="https://youtube.com/@noswork" target="_blank" aria-label="YouTube">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                </a>
+                <a href="https://space.bilibili.com/yourID" target="_blank" aria-label="Bilibili">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373z"/>
+                    </svg>
+                </a>
+                <a href="https://github.com/noswork" target="_blank" aria-label="GitHub">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content auth-modal">
+            <h2 id="authModalTitle" data-i18n="auth.modalTitleSignin">歡迎回來</h2>
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" data-auth-tab="signin" data-i18n="auth.signInTab">登入</button>
+                <button class="auth-tab-btn" data-auth-tab="signup" data-i18n="auth.signUpTab">註冊</button>
+            </div>
+            <div id="authStatus" role="status" aria-live="polite"></div>
+            <form class="auth-form" id="signInForm">
+                <div class="auth-field">
+                    <label for="signinUsername" data-i18n="auth.usernameLabel">使用者名稱</label>
+                    <input type="text" id="signinUsername" placeholder="玩家名稱" required data-i18n-placeholder="auth.usernamePlaceholder" minlength="2" maxlength="32" autocomplete="username">
+                </div>
+                <div class="auth-field password-field">
+                    <label for="signinPassword" data-i18n="auth.passwordLabel">密碼</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="signinPassword" placeholder="********" required data-i18n-placeholder="auth.passwordPlaceholder" minlength="6" autocomplete="current-password">
+                        <button type="button" class="toggle-password" data-target="signinPassword" aria-label="Toggle password visibility">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-submit" data-i18n="auth.signIn">登入</button>
+            </form>
+            <form class="auth-form hidden" id="signUpForm">
+                <div class="auth-field">
+                    <label for="signupUsername" data-i18n="auth.usernameLabel">使用者名稱</label>
+                    <input type="text" id="signupUsername" placeholder="玩家名稱" required data-i18n-placeholder="auth.usernamePlaceholder" minlength="2" maxlength="32" autocomplete="username">
+                </div>
+                <div class="auth-field password-field">
+                    <label for="signupPassword" data-i18n="auth.passwordLabel">密碼</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="signupPassword" placeholder="********" required data-i18n-placeholder="auth.passwordPlaceholder" minlength="6" autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-target="signupPassword" aria-label="Toggle password visibility">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="password-strength" id="passwordStrength">
+                        <div class="strength-bar">
+                            <div class="strength-bar-fill"></div>
+                        </div>
+                        <span class="strength-text" data-i18n="auth.passwordStrengthWeak">密碼強度：弱</span>
+                    </div>
+                </div>
+                <div class="auth-field password-field">
+                    <label for="signupPasswordConfirm" data-i18n="auth.confirmPasswordLabel">確認密碼</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="signupPasswordConfirm" placeholder="********" required data-i18n-placeholder="auth.confirmPasswordPlaceholder" minlength="6" autocomplete="new-password">
+                        <button type="button" class="toggle-password" data-target="signupPasswordConfirm" aria-label="Toggle password visibility">
+                            <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg class="eye-off-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="auth-submit" data-i18n="auth.signUp">建立帳號</button>
+            </form>
+            <p class="auth-footer-text">
+                <button type="button" id="authAlternativeAction" data-i18n="auth.needAccount">還沒有帳號？立即註冊</button>
+            </p>
+            <button class="close-btn" id="closeAuthModal" data-i18n="auth.close">關閉</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content settings-modal">
+            <h2 data-i18n="settings.title">Settings</h2>
+            
+            <div class="setting-group">
+                <label data-i18n="settings.language">Language</label>
+                <div class="button-group">
+                    <button class="setting-btn" id="langZh" data-lang="zh">中文</button>
+                    <button class="setting-btn" id="langEn" data-lang="en">English</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label data-i18n="settings.theme">Theme</label>
+                <div class="theme-grid">
+                    <button class="theme-btn" data-theme="light" aria-label="Light Theme">
+                        <div class="theme-preview light-preview"></div>
+                        <span data-i18n="theme.light">Light</span>
+                    </button>
+                    <button class="theme-btn" data-theme="dark" aria-label="Dark Theme">
+                        <div class="theme-preview dark-preview"></div>
+                        <span data-i18n="theme.dark">Dark</span>
+                    </button>
+                    <button class="theme-btn" data-theme="system" aria-label="System Theme">
+                        <div class="theme-preview system-preview"></div>
+                        <span data-i18n="theme.system">System</span>
+                    </button>
+                </div>
+            </div>
+
+            <button class="close-btn" id="closeSettings" data-i18n="settings.close">Close</button>
+        </div>
+    </div>
+
+</body>
+</html>

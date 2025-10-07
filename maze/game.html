@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOS MAZE - Game</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 預加載主題和語言 - 防止閃爍 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('maze-theme') || 'light';
+            const savedLang = localStorage.getItem('maze-lang') || 'zh';
+            
+            // 處理系統主題
+            let actualTheme = savedTheme;
+            if (savedTheme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                actualTheme = prefersDark ? 'dark' : 'light';
+            }
+            
+            document.documentElement.className = 'theme-' + actualTheme;
+            document.documentElement.lang = savedLang === 'zh' ? 'zh-TW' : 'en';
+            
+            // 儲存語言設定供後續使用
+            window.__MAZE_PRELOAD_LANG__ = savedLang;
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="supabase-config.js" defer></script>
+    <script src="supabase-client.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script type="module" src="scripts/game/index.js" defer></script>
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-header">
+            <div class="game-header-left">
+                <button class="header-nav-btn" id="backBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    <span data-i18n="game.back">返回選單</span>
+                </button>
+            </div>
+            <div class="game-info">
+                <div id="stepCounter">
+                    <span data-i18n="game.steps">步数</span>: <span id="stepCount">0</span>
+                </div>
+                <div id="timer" style="display: none;">
+                    <span data-i18n="game.time">时间</span>: <span id="timeDisplay">0:00</span>
+                </div>
+                <div id="mazeCounter" style="display: none;">
+                    <span data-i18n="game.mazes">迷宫</span>: <span id="mazeCount">0</span>
+                </div>
+            </div>
+            <div class="game-header-right">
+                <button class="pause-btn" id="pauseBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="pause-icon">
+                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="play-icon" style="display: none;">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </button>
+            </div>
+            <!-- 遊戲頁面不顯示用戶狀態 -->
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <div class="game-status" id="gameStatus"></div>
+        
+        <!-- Virtual D-Pad Controls -->
+        <div class="dpad-container" id="dpadContainer">
+            <button class="dpad-btn dpad-up" id="dpadUp" aria-label="Up">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 14l5-5 5 5z"/>
+                </svg>
+            </button>
+            <button class="dpad-btn dpad-down" id="dpadDown" aria-label="Down">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <button class="dpad-btn dpad-left" id="dpadLeft" aria-label="Left">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 7l-5 5 5 5z"/>
+                </svg>
+            </button>
+            <button class="dpad-btn dpad-right" id="dpadRight" aria-label="Right">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 17l5-5-5-5z"/>
+                </svg>
+            </button>
+            <div class="dpad-center"></div>
+        </div>
+        
+        <!-- Win Modal -->
+        <div class="modal" id="winModal">
+            <div class="modal-content">
+                <h2 data-i18n="game.congrats">恭喜！</h2>
+                <p id="winMessage"></p>
+                <div class="modal-buttons">
+                    <button class="menu-btn" id="winPlayAgainBtn">
+                        <span data-i18n="game.playAgain">再玩一次</span>
+                    </button>
+                    <button class="menu-btn secondary" id="winMenuBtn">
+                        <span data-i18n="game.backMenu">返回选单</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Game Over Modal (for Race the Clock) -->
+        <div class="modal" id="gameOverModal">
+            <div class="modal-content">
+                <h2 data-i18n="game.timeUp">时间到！</h2>
+                <p id="gameOverMessage">
+                    <span data-i18n="game.completed">你完成了</span> <span id="finalCount">0</span> <span data-i18n="game.mazes">个迷宫</span>！
+                </p>
+                <div class="modal-buttons">
+                    <button class="menu-btn" id="gameOverPlayAgainBtn">
+                        <span data-i18n="game.playAgain">再玩一次</span>
+                    </button>
+                    <button class="menu-btn secondary" id="gameOverMenuBtn">
+                        <span data-i18n="game.backMenu">返回选单</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Modal -->
+        <div class="modal" id="pauseModal">
+            <div class="modal-content">
+                <h2 data-i18n="game.paused">游戏已暂停</h2>
+                <div class="modal-buttons">
+                    <button class="menu-btn" id="resumeBtn">
+                        <span data-i18n="game.resume">继续游戏</span>
+                    </button>
+                    <button class="menu-btn secondary" id="pauseMenuBtn">
+                        <span data-i18n="game.backMenu">返回选单</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

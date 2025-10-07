@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOS MAZE - Leaderboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 預加載主題和語言 - 防止閃爍 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('maze-theme') || 'light';
+            const savedLang = localStorage.getItem('maze-lang') || 'zh';
+            
+            // 處理系統主題
+            let actualTheme = savedTheme;
+            if (savedTheme === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                actualTheme = prefersDark ? 'dark' : 'light';
+            }
+            
+            document.documentElement.className = 'theme-' + actualTheme;
+            document.documentElement.lang = savedLang === 'zh' ? 'zh-TW' : 'en';
+            
+            // 儲存語言設定供後續使用
+            window.__MAZE_PRELOAD_LANG__ = savedLang;
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="supabase-config.js" defer></script>
+    <script src="supabase-client.js" defer></script>
+    <script src="i18n.js" defer></script>
+    <script type="module" src="scripts/leaderboard/index.js" defer></script>
+</head>
+<body class="leaderboard-page">
+    <div class="leaderboard-container">
+        <header class="leaderboard-header">
+            <div class="leaderboard-header-left">
+                <button class="header-nav-btn" id="leaderboardBackBtn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                    </svg>
+                    <span data-i18n="leaderboard.back">返回主選單</span>
+                </button>
+            </div>
+            <div class="leaderboard-heading">
+                <h1 class="leaderboard-title-with-tooltip" data-i18n="leaderboard.title">競速模式排行榜
+                    <span class="tooltip-icon">ℹ️</span>
+                    <div class="leaderboard-tooltip">
+                        <div class="tooltip-section">
+                            <h3 data-i18n="leaderboard.tooltip.rulesTitle">規則</h3>
+                            <ul>
+                                <li data-i18n="leaderboard.tooltip.rule1">⏱️ 優先以完成時間排序</li>
+                                <li data-i18n="leaderboard.tooltip.rule2">👣 時間相同時以步數決勝</li>
+                                <li data-i18n="leaderboard.tooltip.rule3">🏆 每個項目顯示前 50 名</li>
+                            </ul>
+                        </div>
+                        <div class="tooltip-section">
+                            <h3 data-i18n="leaderboard.tooltip.requirementsTitle">參賽條件</h3>
+                            <ul>
+                                <li data-i18n="leaderboard.tooltip.requirement1">🔐 需登入才能記錄成績</li>
+                                <li data-i18n="leaderboard.tooltip.requirement2">✨ 只保留個人最佳紀錄</li>
+                            </ul>
+                        </div>
+                    </div>
+                </h1>
+            </div>
+            <div class="leaderboard-header-right" aria-hidden="true"></div>
+        </header>
+
+        <section class="leaderboard-main">
+            <div class="leaderboard-controls">
+                <div class="select-group">
+                    <label class="leaderboard-select-label" for="modeSelect" data-i18n="leaderboard.modeLabel">遊戲模式</label>
+                    <div class="select-wrapper">
+                        <select id="modeSelect" class="leaderboard-select"></select>
+                        <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 10l5 5 5-5z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="select-group">
+                    <label class="leaderboard-select-label" for="sizeSelect" data-i18n="leaderboard.sizeLabel">迷宮大小</label>
+                    <div class="select-wrapper">
+                        <select id="sizeSelect" class="leaderboard-select"></select>
+                        <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 10l5 5 5-5z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="select-group">
+                    <label class="leaderboard-select-label" for="countSelect" data-i18n="leaderboard.countLabel">迷宮數量</label>
+                    <div class="select-wrapper">
+                        <select id="countSelect" class="leaderboard-select"></select>
+                        <svg class="select-chevron" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 10l5 5 5-5z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leaderboard-status" id="leaderboardStatus" data-i18n="leaderboard.loading">排行榜載入中…</div>
+            <div class="leaderboard-table-wrapper hidden" id="leaderboardTableWrapper">
+                <table class="leaderboard-table" aria-live="polite">
+                    <thead>
+                        <tr>
+                            <th data-i18n="leaderboard.columns.rank">排名</th>
+                            <th data-i18n="leaderboard.columns.player">玩家</th>
+                            <th data-i18n="leaderboard.columns.time">時間</th>
+                            <th data-i18n="leaderboard.columns.steps">步數</th>
+                            <th data-i18n="leaderboard.columns.date">日期</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+

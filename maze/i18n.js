@@ -1,0 +1,240 @@
+// Shared translations for NOS Maze UI elements.
+// Exposed globally as `window.MAZE_TRANSLATIONS` so both the main menu
+// and game page can reuse the same vocabulary.
+
+(function () {
+    window.MAZE_TRANSLATIONS = {
+        zh: {
+            'tab.justMaze': '經典迷宮',
+            'tab.faultless': '完美挑戰',
+            'tab.race': '競速模式',
+            'tab.dark': '黑暗迷宮',
+            'desc.justMaze': '純粹的迷宮體驗，適合想要放鬆或小小挑戰的人。',
+            'desc.faultless': '完美通關挑戰！不能回頭，不能撞牆，一次失誤就得重新開始。比你想像的更難。',
+            'desc.race': '挑戰完成指定數量的迷宮，看看你能多快完成！',
+            'desc.dark': '在黑暗中探索迷宮，只能看見一小塊區域。考驗你的記憶力和方向感！',
+            'race.classic': '經典模式',
+            'race.dark': '黑暗模式',
+            'race.mazes': '個迷宮',
+            'dark.single': '單一迷宮',
+            'size.mini': '小型迷宮',
+            'size.medium': '中型迷宮',
+            'size.mighty': '大型迷宮',
+            'size.mega': '超大迷宮',
+            'size.teensy': '微型',
+            'size.faultlessMini': '完美小型',
+            'size.faultlessMedium': '完美中型',
+            'size.faultlessMighty': '完美大型',
+            'nav.leaderboard': '排行榜',
+            'leaderboard.title': '競速模式排行榜',
+            'leaderboard.tooltip.rulesTitle': '規則',
+            'leaderboard.tooltip.rule1': '⏱️ 優先以完成時間排序',
+            'leaderboard.tooltip.rule2': '👣 時間相同時以步數決勝',
+            'leaderboard.tooltip.rule3': '🏆 每個項目顯示前 50 名',
+            'leaderboard.tooltip.requirementsTitle': '參賽條件',
+            'leaderboard.tooltip.requirement1': '🔐 需登入才能記錄成績',
+            'leaderboard.tooltip.requirement2': '✨ 只保留個人最佳紀錄',
+            'leaderboard.modeLabel': '遊戲模式',
+            'leaderboard.mode.race': '經典競速',
+            'leaderboard.mode.dark': '黑暗競速',
+            'leaderboard.sizeLabel': '迷宮大小',
+            'leaderboard.countLabel': '迷宮數量',
+            'leaderboard.loading': '排行榜載入中…',
+            'leaderboard.error': '暫時無法載入排行榜，請稍後再試。',
+            'leaderboard.empty': '目前還沒有任何紀錄，成為第一個締造紀錄的玩家吧！',
+            'leaderboard.columns.rank': '排名',
+            'leaderboard.columns.player': '玩家',
+            'leaderboard.columns.time': '時間',
+            'leaderboard.columns.steps': '步數',
+            'leaderboard.columns.date': '日期',
+            'leaderboard.back': '返回主選單',
+            'leaderboard.highlightLabel': '你',
+            'settings.title': '設定',
+            'settings.language': '語言',
+            'settings.theme': '主題',
+            'settings.close': '關閉',
+            'theme.light': '明亮',
+            'theme.dark': '暗黑',
+            'theme.system': '系統',
+            'auth.login': '登入',
+            'auth.logout': '登出',
+            'auth.signInTab': '登入',
+            'auth.signUpTab': '註冊',
+            'auth.emailLabel': '電子郵件',
+            'auth.passwordLabel': '密碼',
+            'auth.confirmPasswordLabel': '確認密碼',
+            'auth.emailPlaceholder': 'you@example.com',
+            'auth.passwordPlaceholder': '請輸入至少 6 碼密碼',
+            'auth.confirmPasswordPlaceholder': '再次輸入密碼',
+            'auth.usernameLabel': '使用者名稱',
+            'auth.usernamePlaceholder': '玩家名稱',
+            'auth.accountCreated': '帳號建立成功！請登入。',
+            'auth.passwordMismatch': '兩次輸入的密碼不一致，請重新確認。',
+            'auth.passwordStrengthWeak': '密碼強度：弱',
+            'auth.passwordStrengthMedium': '密碼強度：中',
+            'auth.passwordStrengthStrong': '密碼強度：強',
+            'auth.signIn': '登入',
+            'auth.signUp': '建立帳號',
+            'auth.usernameRequired': '請輸入至少 2 個字元的顯示名稱。',
+            'auth.needAccount': '還沒有帳號？立即註冊',
+            'auth.haveAccount': '已經有帳號？立即登入',
+            'auth.modalTitleSignin': '歡迎回來',
+            'auth.modalTitleSignup': '建立新帳號',
+            'auth.signingIn': '登入中……',
+            'auth.creatingAccount': '建立帳號中……',
+            'auth.signedIn': '登入成功！',
+            'auth.confirmEmail': '請至信箱收信並完成驗證。',
+            'auth.requireSignIn': '請先登入以開始遊戲。',
+            'auth.close': '關閉',
+            'auth.usernameTaken': '顯示名稱已經被使用。',
+            'auth.usernameCheckFailed': '目前無法確認顯示名稱是否可用，請稍後再試。',
+            'auth.emailAlreadyRegistered': '這個電子郵件已經註冊過了。',
+            'auth.emailNotConfirmed': '請先完成電子郵件驗證後再登入。',
+            'auth.invalidCredentials': '使用者名稱或密碼不正確。',
+            'auth.networkError': '網路連線異常，請檢查後再試一次。',
+            'auth.rateLimited': '操作太頻繁，請稍候再試。',
+            'auth.genericSignUpError': '註冊時發生錯誤，請稍後再試。',
+            'auth.genericSignInError': '登入時發生錯誤，請稍後再試。',
+            'game.leaderboardSaved': '成績已記錄在排行榜！',
+            'game.leaderboardSaveFailed': '無法儲存排行榜成績。',
+            'game.personalBestSaved': '刷新個人紀錄！',
+            'game.leaderboardNoImprovement': '本次成績沒有超越你的最佳紀錄。',
+            'game.sessionStartFailed': '無法建立挑戰會話，成績不會被記錄。',
+            'game.sessionCompleteFailed': '無法驗證挑戰成績，請稍後再試。',
+            'game.sessionMissing': '沒有有效的挑戰會話，無法儲存成績。'
+        },
+        en: {
+            'tab.justMaze': 'Just Maze',
+            'tab.faultless': 'Faultless',
+            'tab.race': 'Race Clock',
+            'tab.dark': 'Dark Maze',
+            'desc.justMaze': 'Straight up mazes for those who want to lose themselves with no stress, or at least a little stress.',
+            'desc.faultless': "Complete the maze with no backtracking or wall hitting allowed. One mistake sends you back to start. It's harder than you think.",
+            'desc.race': 'Challenge yourself to complete a set number of mazes as fast as you can!',
+            'desc.dark': 'Explore the maze in darkness with limited visibility. Test your memory and sense of direction!',
+            'race.classic': 'Classic Mode',
+            'race.dark': 'Dark Mode',
+            'race.mazes': 'mazes',
+            'dark.single': 'Single Maze',
+            'size.mini': 'Mini Maze',
+            'size.medium': 'Medium Maze',
+            'size.mighty': 'Mighty Maze',
+            'size.mega': 'Mega Maze',
+            'size.teensy': 'Teensy',
+            'size.faultlessMini': 'Faultless Mini',
+            'size.faultlessMedium': 'Faultless Medium',
+            'size.faultlessMighty': 'Faultless Mighty',
+            'nav.leaderboard': 'Leaderboard',
+            'leaderboard.title': 'Race Mode Leaderboard',
+            'leaderboard.tooltip.rulesTitle': 'Rules',
+            'leaderboard.tooltip.rule1': '⏱️ Sorted by completion time',
+            'leaderboard.tooltip.rule2': '👣 Steps as tiebreaker',
+            'leaderboard.tooltip.rule3': '🏆 Top 50 per category',
+            'leaderboard.tooltip.requirementsTitle': 'Requirements',
+            'leaderboard.tooltip.requirement1': '🔐 Sign in to record scores',
+            'leaderboard.tooltip.requirement2': '✨ Only best scores saved',
+            'leaderboard.modeLabel': 'Game Mode',
+            'leaderboard.mode.race': 'Classic Race',
+            'leaderboard.mode.dark': 'Dark Race',
+            'leaderboard.sizeLabel': 'Maze Size',
+            'leaderboard.countLabel': 'Maze Count',
+            'leaderboard.loading': 'Loading leaderboard…',
+            'leaderboard.error': 'Unable to load leaderboard right now. Please try again later.',
+            'leaderboard.empty': 'No records yet. Be the first to set one!',
+            'leaderboard.columns.rank': 'Rank',
+            'leaderboard.columns.player': 'Player',
+            'leaderboard.columns.time': 'Time',
+            'leaderboard.columns.steps': 'Steps',
+            'leaderboard.columns.date': 'Date',
+            'leaderboard.back': 'Back to Menu',
+            'leaderboard.highlightLabel': 'You',
+            'settings.title': 'Settings',
+            'settings.language': 'Language',
+            'settings.theme': 'Theme',
+            'settings.close': 'Close',
+            'theme.light': 'Light',
+            'theme.dark': 'Dark',
+            'theme.system': 'System',
+            'auth.login': 'Sign In',
+            'auth.logout': 'Sign Out',
+            'auth.signInTab': 'Sign In',
+            'auth.signUpTab': 'Sign Up',
+            'auth.emailLabel': 'Email',
+            'auth.passwordLabel': 'Password',
+            'auth.confirmPasswordLabel': 'Confirm Password',
+            'auth.emailPlaceholder': 'you@example.com',
+            'auth.passwordPlaceholder': 'Enter at least 6 characters',
+            'auth.confirmPasswordPlaceholder': 'Re-enter password',
+            'auth.usernameLabel': 'Username',
+            'auth.usernamePlaceholder': 'Player name',
+            'auth.accountCreated': 'Account created! Please sign in.',
+            'auth.passwordMismatch': 'Passwords do not match. Please check and try again.',
+            'auth.passwordStrengthWeak': 'Password Strength: Weak',
+            'auth.passwordStrengthMedium': 'Password Strength: Medium',
+            'auth.passwordStrengthStrong': 'Password Strength: Strong',
+            'auth.signIn': 'Sign In',
+            'auth.signUp': 'Create Account',
+            'auth.usernameRequired': 'Display name must be at least 2 characters.',
+            'auth.needAccount': 'Need an account? Sign up',
+            'auth.haveAccount': 'Already have an account? Sign in',
+            'auth.modalTitleSignin': 'Welcome Back',
+            'auth.modalTitleSignup': 'Create Account',
+            'auth.signingIn': 'Signing in…',
+            'auth.creatingAccount': 'Creating account…',
+            'auth.signedIn': 'Signed in successfully!',
+            'auth.confirmEmail': 'Check your inbox to confirm the email.',
+            'auth.requireSignIn': 'Please sign in to play.',
+            'auth.close': 'Close',
+            'auth.usernameTaken': 'That display name is already taken.',
+            'auth.usernameCheckFailed': 'We can’t verify the display name right now. Please try again later.',
+            'auth.emailAlreadyRegistered': 'This email is already registered.',
+            'auth.emailNotConfirmed': 'Please confirm your email before signing in.',
+            'auth.invalidCredentials': 'Incorrect username or password.',
+            'auth.networkError': 'Network connection issue. Please check and try again.',
+            'auth.rateLimited': 'Too many attempts. Please slow down and try again later.',
+            'auth.genericSignUpError': 'Something went wrong while signing up. Please try again.',
+            'auth.genericSignInError': 'Something went wrong while signing in. Please try again.',
+            'game.leaderboardSaved': 'Result saved to the leaderboard!',
+            'game.leaderboardSaveFailed': 'Could not save leaderboard result.',
+            'game.personalBestSaved': 'New personal best!',
+            'game.leaderboardNoImprovement': 'This run did not beat your best record yet.',
+            'game.sessionStartFailed': 'Could not start a verified race session, your score will not be recorded.',
+            'game.sessionCompleteFailed': 'Could not verify the race result. Please try again.',
+            'game.sessionMissing': 'No active race session; result cannot be saved.'
+        }
+    };
+
+    window.getMazeTranslation = function (lang, key) {
+        return window.MAZE_TRANSLATIONS?.[lang]?.[key] ?? key;
+    };
+    
+    // 立即應用預載的語言設定，防止語言閃爍
+    window.applyTranslationsImmediately = function() {
+        const lang = window.__MAZE_PRELOAD_LANG__ || localStorage.getItem('maze-lang') || 'zh';
+        
+        // 更新所有帶有 data-i18n 的元素
+        document.querySelectorAll('[data-i18n]').forEach((element) => {
+            const key = element.dataset.i18n;
+            if (key) {
+                element.textContent = window.getMazeTranslation(lang, key);
+            }
+        });
+        
+        // 更新所有帶有 data-i18n-placeholder 的元素
+        document.querySelectorAll('[data-i18n-placeholder]').forEach((element) => {
+            const key = element.dataset.i18nPlaceholder;
+            if (key) {
+                element.placeholder = window.getMazeTranslation(lang, key);
+            }
+        });
+    };
+    
+    // 在 DOM 準備好時立即應用翻譯
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.applyTranslationsImmediately);
+    } else {
+        window.applyTranslationsImmediately();
+    }
+})();
+
+

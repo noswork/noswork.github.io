@@ -1512,6 +1512,7 @@ html.theme-dark .auth-footer-text {
     width: 100%;
     max-width: 900px;
     overflow: hidden;
+    margin-bottom: 0; /* 桌面端無需底部邊距 */
 }
 
 .back-btn, .menu-btn {
@@ -1603,6 +1604,7 @@ html.theme-dark .auth-footer-text {
     height: 150px;
     display: none; /* 預設隱藏，只在手機端顯示 */
     z-index: 2000; /* 確保在最上層 */
+    pointer-events: none; /* 容器本身不攔截點擊 */
 }
 
 .dpad-btn {
@@ -1622,6 +1624,7 @@ html.theme-dark .auth-footer-text {
     -webkit-tap-highlight-color: transparent;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     touch-action: manipulation; /* 優化觸摸響應 */
+    pointer-events: auto; /* 按鈕可以接收點擊 */
 }
 
 .dpad-btn:hover {
@@ -1636,41 +1639,41 @@ html.theme-dark .auth-footer-text {
 .dpad-up {
     top: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(0);
 }
 
 .dpad-up:active {
-    transform: translateX(-50%) translateY(-3px);
+    transform: translateX(-50%) translateY(-3px) !important;
 }
 
 .dpad-down {
     bottom: 0;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) translateY(0);
 }
 
 .dpad-down:active {
-    transform: translateX(-50%) translateY(3px);
+    transform: translateX(-50%) translateY(3px) !important;
 }
 
 .dpad-left {
     left: 0;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(0);
 }
 
 .dpad-left:active {
-    transform: translateY(-50%) translateX(-3px);
+    transform: translateY(-50%) translateX(-3px) !important;
 }
 
 .dpad-right {
     right: 0;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) translateX(0);
 }
 
 .dpad-right:active {
-    transform: translateY(-50%) translateX(3px);
+    transform: translateY(-50%) translateX(3px) !important;
 }
 
 .dpad-center {
@@ -1765,6 +1768,11 @@ html.theme-dark .auth-footer-text {
     /* 在手機端顯示方向鍵 */
     .dpad-container {
         display: block;
+    }
+    
+    /* 給地圖容器添加底部邊距，避免被方向鍵遮擋 */
+    .canvas-wrapper {
+        margin-bottom: 180px; /* 方向鍵高度 + 間距 */
     }
 }
 
@@ -1863,6 +1871,11 @@ html.theme-dark .auth-footer-text {
     .dpad-btn:active {
         background-color: var(--accent-color);
         transform: scale(0.9);
+    }
+    
+    /* 調整地圖容器的底部邊距 */
+    .canvas-wrapper {
+        margin-bottom: 160px; /* 更小屏幕的方向鍵高度 + 間距 */
     }
 }
 

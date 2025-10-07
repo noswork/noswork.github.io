@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Prompt Optimizer</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+    <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // Apply theme, sidebar, and section states immediately to prevent flash
+        (function() {
+            // Apply theme first (before page renders)
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+            
+            // Store states to apply when DOM is ready
+            window.__initialStates = {
+                sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+                sectionStates: JSON.parse(localStorage.getItem('sectionStates') || '{}')
+            };
+            
+            // Apply states as soon as possible
+            function applyInitialStates() {
+                // Apply sidebar state
+                if (window.__initialStates.sidebarCollapsed) {
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar) {
+                        sidebar.classList.add('collapsed');
+                    }
+                }
+                
+                // Apply section states
+                const sections = ['settings', 'parameters', 'behavior', 'history'];
+                sections.forEach(function(section) {
+                    if (window.__initialStates.sectionStates[section]) {
+                        const content = document.getElementById(section + 'Content');
+                        const toggle = document.getElementById(section + 'Toggle');
+                        if (content) content.classList.add('collapsed');
+                        if (toggle) toggle.classList.add('collapsed');
+                    }
+                });
+            }
+            
+            // Execute as early as possible
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applyInitialStates);
+            } else {
+                applyInitialStates();
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-section">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                    <span id="logoText">Prompt Optimizer</span>
+                </div>
+                <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('settings')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 5.08l4.24 4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08-5.08l4.24-4.24"/>
+                        </svg>
+                        <span id="settingsTitle">Settings</span>
+                    </div>
+                    <span class="section-toggle" id="settingsToggle">▼</span>
+                </div>
+                <div class="section-content" id="settingsContent">
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="optimizerType">
+                                <span id="optimizerTypeLabel">Optimizer Type</span>
+                            </label>
+                            <select id="optimizerType" class="settings-select" onchange="updateOptimizerType()">
+                                <option value="claude">Claude Prompt Optimizer</option>
+                                <option value="gpt5">GPT-5 Prompt Optimizer</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="apiFormat">
+                                <span id="apiFormatLabel">API Format</span>
+                            </label>
+                            <select id="apiFormat" class="settings-select" onchange="updateApiFormatHints()">
+                                <option value="openai">OpenAI</option>
+                                <option value="anthropic">Anthropic</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="autoCompleteUrl" onchange="saveSettings()">
+                                <span id="autoCompleteUrlLabel">Auto-complete API endpoint</span>
+                            </label>
+                            <small class="input-hint" id="autoCompleteHint"></small>
+                        </div>
+                        <div class="input-group">
+                            <label for="apiBase">
+                                <span id="apiBaseLabel">API Path</span>
+                            </label>
+                            <input type="text" id="apiBase" placeholder="https://api.openai.com/v1">
+                            <small class="input-hint" id="apiBaseHint"></small>
+                        </div>
+                        <div class="input-group">
+                            <label for="apiKey">
+                                <span id="apiKeyLabel">API Key</span>
+                            </label>
+                            <input type="password" id="apiKey" placeholder="sk-...">
+                        </div>
+                        <div class="input-group">
+                            <label for="modelName">
+                                <span id="modelNameLabel">Model Name</span>
+                            </label>
+                            <input type="text" id="modelName" placeholder="claude-3-5-sonnet-20240620" value="claude-3-5-sonnet-20240620">
+                            <small class="input-hint" id="modelNameHint"></small>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSettings()">
+                            <span id="saveSettingsBtn">Save Settings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Parameters -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('parameters')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="21" x2="4" y2="14"/>
+                            <line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/>
+                            <line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/>
+                            <line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                        </svg>
+                        <span id="parametersTitle">Optimization Parameters</span>
+                    </div>
+                    <span class="section-toggle" id="parametersToggle">▼</span>
+                </div>
+                <div class="section-content" id="parametersContent">
+                    <div class="settings-form">
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label" id="accuracyLabel">🎯 Accuracy</span>
+                                <span class="slider-value" id="accuracyValue">5</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="accuracySlider" oninput="updateSlider('accuracy')">
+                            <div class="slider-labels">
+                                <span id="accuracyLow">Low</span>
+                                <span id="accuracyHigh">High</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label" id="speedLabel">⚡ Speed</span>
+                                <span class="slider-value" id="speedValue">5</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="speedSlider" oninput="updateSlider('speed')">
+                            <div class="slider-labels">
+                                <span id="speedLow">Slow</span>
+                                <span id="speedHigh">Fast</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label" id="brevityLabel">📏 Brevity</span>
+                                <span class="slider-value" id="brevityValue">5</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="brevitySlider" oninput="updateSlider('brevity')">
+                            <div class="slider-labels">
+                                <span id="brevityLow">Verbose</span>
+                                <span id="brevityHigh">Concise</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label" id="creativityLabel">🎨 Creativity</span>
+                                <span class="slider-value" id="creativityValue">5</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="creativitySlider" oninput="updateSlider('creativity')">
+                            <div class="slider-labels">
+                                <span id="creativityLow">Conservative</span>
+                                <span id="creativityHigh">Creative</span>
+                            </div>
+                        </div>
+
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="slider-label" id="safetyLabel">🛡️ Safety</span>
+                                <span class="slider-value" id="safetyValue">5</span>
+                            </div>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="safetySlider" oninput="updateSlider('safety')">
+                            <div class="slider-labels">
+                                <span id="safetyLow">Permissive</span>
+                                <span id="safetyHigh">Strict</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Behavior Configuration -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('behavior')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                            <path d="M14 2v4M10 2v4M14 2h-4"/>
+                        </svg>
+                        <span id="behaviorTitle">Behavior Configuration</span>
+                    </div>
+                    <span class="section-toggle" id="behaviorToggle">▼</span>
+                </div>
+                <div class="section-content" id="behaviorContent">
+                    <div class="settings-form">
+                        <div class="input-group">
+                            <label for="desiredBehavior">
+                                <span id="desiredBehaviorLabel">✅ Desired Behavior</span>
+                            </label>
+                            <textarea id="desiredBehavior" placeholder="E.g., Provide detailed explanations with examples"></textarea>
+                        </div>
+                        <div class="input-group">
+                            <label for="undesiredBehavior">
+                                <span id="undesiredBehaviorLabel">❌ Undesired Behavior</span>
+                            </label>
+                            <textarea id="undesiredBehavior" placeholder="E.g., Avoid making assumptions without clarification"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Section -->
+            <div class="sidebar-section">
+                <div class="section-header" onclick="toggleSection('history')">
+                    <div class="section-title">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                            <path d="M3 3v5h5"/>
+                            <path d="M12 7v5l4 2"/>
+                        </svg>
+                        <span id="historyTitle">History</span>
+                    </div>
+                    <span class="section-toggle collapsed" id="historyToggle">▼</span>
+                </div>
+                <div class="section-content collapsed" id="historyContent">
+                    <div class="history-list" id="historyList">
+                        <div style="padding: 20px; text-align: center; color: var(--text-tertiary); font-size: 13px;" id="noHistoryText">
+                            No history yet
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar Open Button -->
+            <button class="sidebar-open-btn" id="sidebarOpenBtn" onclick="toggleSidebar()" title="Open Sidebar" style="display: none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </button>
+            
+            <header class="header">
+                <h1 class="header-title" id="headerTitle">Prompt Optimizer</h1>
+                <div class="header-controls">
+                    <select class="lang-select" id="langSelect" onchange="changeLanguage()">
+                        <option value="en">English</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="zh-TW">繁體中文</option>
+                        <option value="es">Español</option>
+                        <option value="ja">日本語</option>
+                    </select>
+                    <button class="icon-btn" onclick="toggleTheme()">
+                        <svg class="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                        </svg>
+                        <span id="themeText">Theme</span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="editor-container">
+                <!-- Original Prompt Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <span class="panel-title" id="originalPromptTitle">Original Prompt</span>
+                        <div class="panel-actions">
+                            <button class="btn btn-secondary" onclick="clearOriginal()">
+                                <span id="clearBtn">Clear</span>
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="originalPrompt" placeholder="Enter your prompt here...
+
+Example: Create a function that validates email addresses.
+
+The optimizer will enhance your prompt following Claude best practices." oninput="updateCharCount('original')"></textarea>
+                    <div class="char-count" id="originalCount">0 characters</div>
+                </div>
+
+                <!-- Optimized Prompt Panel -->
+                <div class="editor-panel">
+                    <div class="panel-header">
+                        <span class="panel-title" id="optimizedPromptTitle">Optimized Prompt</span>
+                        <div class="panel-actions">
+                            <div class="view-mode-toggle">
+                                <button class="view-mode-btn active" onclick="switchViewMode('raw')" id="rawViewBtn">
+                                    <span id="rawViewText">Raw</span>
+                                </button>
+                                <button class="view-mode-btn" onclick="switchViewMode('structured')" id="structuredViewBtn">
+                                    <span id="structuredViewText">Structured</span>
+                                </button>
+                                <button class="view-mode-btn" onclick="switchViewMode('comparison')" id="comparisonViewBtn">
+                                    <span id="comparisonViewText">Comparison</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-secondary" id="reuseBtn" onclick="reuseOptimized()" style="display: none;">
+                                <span>🔄</span>
+                                <span id="reuseBtnText">Reuse</span>
+                            </button>
+                            <button class="btn btn-secondary" id="restoreBtn" onclick="restoreOriginal()" style="display: none;">
+                                <span id="restoreBtnText">Restore</span>
+                            </button>
+                            <button class="btn btn-secondary" id="copyBtn" onclick="copyOptimized()" style="display: none;">
+                                <span id="copyBtnText">Copy</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="output-container">
+                        <textarea id="optimizedPrompt" class="active" placeholder="Optimized prompt will appear here..." readonly oninput="updateCharCount('optimized')"></textarea>
+                        <div class="structured-output" id="structuredOutput"></div>
+                        <div class="comparison-view" id="comparisonViewInline"></div>
+                    </div>
+                    <div class="char-count" id="optimizedCount">0 characters</div>
+                </div>
+            </div>
+
+            <div class="bottom-actions">
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="optimizePrompt()" id="optimizeButton">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        <span id="optimizeBtnText">Optimize Prompt</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">
+                        <span id="clearAllBtn">Clear All</span>
+                    </button>
+                    <label class="force-english-toggle">
+                        <input type="checkbox" id="forceEnglishOutput" onchange="saveForceEnglishState()">
+                        <span id="forceEnglishLabel">Force English Output</span>
+                    </label>
+                </div>
+                <div class="social-links">
+                    <a href="https://youtube.com/@YourChannel" target="_blank" rel="noopener noreferrer" class="social-icon youtube" title="YouTube">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                        </svg>
+                    </a>
+                    <a href="https://space.bilibili.com/YourID" target="_blank" rel="noopener noreferrer" class="social-icon bilibili" title="Bilibili">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z"/>
+                        </svg>
+                    </a>
+                    <a href="https://github.com/YourUsername" target="_blank" rel="noopener noreferrer" class="social-icon github" title="GitHub">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                    </a>
+                    <a href="https://discord.gg/YourServer" target="_blank" rel="noopener noreferrer" class="social-icon discord" title="Discord">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                    </a>
+                    <a href="https://twitter.com/YourHandle" target="_blank" rel="noopener noreferrer" class="social-icon twitter" title="Twitter/X">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

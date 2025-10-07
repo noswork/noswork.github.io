@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡繁轉換工具 | Noss2t</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 防止 FOUC (Flash of Unstyled Content) */
+        body { opacity: 0; transition: opacity 0.3s; }
+        body.loaded { opacity: 1; }
+    </style>
+    <script>
+        // 頁面載入完成後顯示
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('loaded');
+        });
+    </script>
+</head>
+<body>
+    <!-- Dashboard 布局 -->
+    <div class="dashboard">
+        <!-- 左側導航欄 -->
+        <aside class="sidebar-nav" id="sidebarNav">
+            <div class="logo">
+                <i class="fas fa-language"></i>
+                <h1>Noss2t</h1>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="converter">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>檔案轉換</span>
+                </button>
+                <button class="nav-item" data-view="dictionary">
+                    <i class="fas fa-book"></i>
+                    <span>自定義詞庫</span>
+                </button>
+                <button class="nav-item" data-view="history">
+                    <i class="fas fa-history"></i>
+                    <span>歷史記錄</span>
+                </button>
+                <button class="nav-item" data-view="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>設定</span>
+                </button>
+            </nav>
+        </aside>
+
+        <!-- 右側主要內容區 -->
+        <main class="main-dashboard">
+            <!-- 檔案轉換視圖 -->
+            <div class="view-container active" id="converterView">
+                <div class="view-header">
+                    <h2>檔案轉換</h2>
+                    <div class="header-controls">
+                        <select id="conversionMode" class="mode-selector">
+                            <option value="cn2tw">簡體 → 台灣正體</option>
+                            <option value="cn2t">簡體 → 繁體</option>
+                            <option value="cn2hk">簡體 → 香港繁體</option>
+                            <option value="t2cn">繁體 → 簡體</option>
+                        </select>
+                        <button id="themeToggle" class="theme-toggle-btn" title="切換主題">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="split-view">
+                    <!-- 左側：上傳和檔案列表 -->
+                    <div class="split-panel">
+                        <div class="panel-header">
+                            <h3>檔案列表</h3>
+                            <div class="panel-actions">
+                                <button id="uploadFilesBtn" class="btn btn-sm btn-success" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-upload"></i> 上傳檔案
+                                </button>
+                                <button id="convertAllBtn" class="btn btn-sm btn-primary" style="display: none;">
+                                    <i class="fas fa-exchange-alt"></i> 轉換全部
+                                </button>
+                                <button id="clearAllBtn" class="btn btn-sm btn-secondary" style="display: none;">
+                                    <i class="fas fa-trash"></i> 清空
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                            <h3>拖放檔案到這裡</h3>
+                            <p>或點擊選擇檔案</p>
+                            <p class="file-types">TXT, SRT, CSV, DOC, DOCX, PDF, MD</p>
+                            <p class="file-limit">最大 50MB</p>
+                            <input type="file" id="fileInput" multiple accept=".txt,.srt,.csv,.doc,.docx,.pdf,.md" hidden>
+                        </div>
+
+                        <div class="files-list-container" id="filesListContainer" style="display: none;">
+                            <div class="files-list" id="filesList"></div>
+                        </div>
+                    </div>
+
+                    <!-- 右側：預覽區域 -->
+                    <div class="split-panel">
+                        <div class="panel-header">
+                            <div class="panel-header-content">
+                                <h3 id="previewTitle">預覽</h3>
+                                <div class="preview-options">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="enableSplit">
+                                        <span>智能分割</span>
+                                    </label>
+                                    <div id="splitOptions" style="display: none;">
+                                        <input type="number" id="splitCount" min="1" max="100" value="10" placeholder="數量">
+                                        <input type="text" id="chapterPattern" placeholder="章節格式" value="^第.*章">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-actions">
+                                <button id="downloadPreviewBtn" class="btn btn-sm btn-primary" disabled>
+                                    <i class="fas fa-download"></i> 下載
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="preview-content" id="previewContent">
+                            <div class="preview-empty">
+                                <i class="fas fa-eye-slash"></i>
+                                <p>上傳檔案後將顯示預覽</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 詞庫管理視圖 -->
+            <div class="view-container" id="dictionaryView">
+                <div class="view-header">
+                    <h2>自定義詞庫</h2>
+                    <div class="header-controls">
+                        <button id="newDictionaryBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 新增詞庫
+                        </button>
+                        <button class="theme-toggle-btn" title="切換主題" onclick="document.getElementById('themeToggle').click()">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="view-content">
+                    <div class="dictionary-list" id="dictionaryList"></div>
+                </div>
+            </div>
+
+            <!-- 歷史記錄視圖 -->
+            <div class="view-container" id="historyView">
+                <div class="view-header">
+                    <h2>歷史記錄</h2>
+                    <div class="header-controls">
+                        <button id="clearHistoryBtn" class="btn btn-secondary">
+                            <i class="fas fa-trash"></i> 清空歷史
+                        </button>
+                        <button class="theme-toggle-btn" title="切換主題" onclick="document.getElementById('themeToggle').click()">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="view-content">
+                    <div class="history-list" id="historyList"></div>
+                </div>
+            </div>
+
+            <!-- 設定視圖 -->
+            <div class="view-container" id="settingsView">
+                <div class="view-header">
+                    <h2>設定</h2>
+                    <button class="theme-toggle-btn" title="切換主題" onclick="document.getElementById('themeToggle').click()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <div class="view-content">
+                    <div class="settings-group">
+                        <h3>一般設定</h3>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoPreview" checked>
+                            <span>上傳後自動預覽</span>
+                        </label>
+                        <label class="setting-label">
+                            歷史記錄上限：
+                            <input type="number" id="maxHistory" min="10" max="100" value="50">
+                        </label>
+                    </div>
+                    <div class="settings-group">
+                        <h3>快捷鍵</h3>
+                        <div class="shortcuts-list">
+                            <div class="shortcut-item">
+                                <span>轉換全部檔案</span>
+                                <kbd>Ctrl + Enter</kbd>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>清空檔案列表</span>
+                                <kbd>Ctrl + Shift + D</kbd>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>開啟自定義詞庫</span>
+                                <kbd>Ctrl + B</kbd>
+                            </div>
+                            <div class="shortcut-item">
+                                <span>關閉側邊欄</span>
+                                <kbd>Esc</kbd>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 模態框：新增詞庫 -->
+    <div class="modal" id="newDictionaryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>新增詞庫</h3>
+                <button class="close-btn" id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label>
+                    詞庫名稱：
+                    <input type="text" id="dictionaryName" placeholder="例如：專有名詞">
+                </label>
+                <label>
+                    描述：
+                    <textarea id="dictionaryDescription" placeholder="詞庫用途說明"></textarea>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button id="saveDictionaryBtn" class="btn btn-primary">確定</button>
+                <button id="cancelDictionaryBtn" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模態框：編輯詞庫 -->
+    <div class="modal" id="editDictionaryModal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3 id="editDictionaryTitle">編輯詞庫</h3>
+                <button class="close-btn" id="closeEditModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="dictionary-entries">
+                    <div class="entries-header">
+                        <button id="addEntryBtn" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 新增詞彙
+                        </button>
+                        <div class="entry-actions">
+                            <button id="importDictionaryBtn" class="btn btn-secondary">
+                                <i class="fas fa-file-import"></i> 匯入
+                            </button>
+                            <button id="exportDictionaryBtn" class="btn btn-secondary">
+                                <i class="fas fa-file-export"></i> 匯出
+                            </button>
+                        </div>
+                    </div>
+                    <div class="entries-list" id="entriesList"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveEntriesBtn" class="btn btn-primary">儲存</button>
+                <button id="cancelEditBtn" class="btn btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 進度顯示 -->
+    <div class="progress-overlay" id="progressOverlay" style="display: none;">
+        <div class="progress-content">
+            <div class="spinner"></div>
+            <p id="progressText">處理中...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-percent" id="progressPercent">0%</p>
+        </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 外部庫 -->
+    <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- 應用程序模組 -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
+

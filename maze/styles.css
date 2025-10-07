@@ -1438,6 +1438,7 @@ html.theme-dark .auth-footer-text {
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100); /* 使用動態視窗高度 */
     padding: 1rem;
+    padding-bottom: 0; /* 不需要額外的底部間距，因為方向鍵是固定定位 */
     overflow: hidden;
 }
 
@@ -1593,12 +1594,15 @@ html.theme-dark .auth-footer-text {
 
 /* Virtual D-Pad */
 .dpad-container {
-    position: relative;
+    position: fixed; /* 改為固定定位 */
+    bottom: 1.5rem; /* 固定在底部 */
+    bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); /* 考慮安全區域 */
+    left: 50%;
+    transform: translateX(-50%);
     width: 150px;
     height: 150px;
-    margin-top: 1rem;
-    margin-bottom: 2rem; /* 增加底部間距，避免被瀏覽器工具欄遮擋 */
     display: none; /* 預設隱藏，只在手機端顯示 */
+    z-index: 2000; /* 確保在最上層 */
 }
 
 .dpad-btn {
@@ -1758,28 +1762,9 @@ html.theme-dark .auth-footer-text {
         display: none;
     }
 
-    .game-container {
-        align-items: stretch;
-        justify-content: flex-start;
-        overflow: visible;
-        padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px));
-    }
-
-    .canvas-wrapper {
-        margin-top: 0.75rem;
-        margin-bottom: 9rem;
-    }
-
-    /* 在手機端顯示方向鍵並固定在底部 */
+    /* 在手機端顯示方向鍵 */
     .dpad-container {
         display: block;
-        position: fixed;
-        bottom: 1.5rem;
-        bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0;
-        z-index: 2000;
     }
 }
 
@@ -1861,7 +1846,6 @@ html.theme-dark .auth-footer-text {
     .dpad-container {
         width: 130px;
         height: 130px;
-        margin-bottom: 0;
     }
 
     .dpad-btn {
@@ -1906,12 +1890,6 @@ html.theme-dark .auth-footer-text {
     /* 防止手機端滾動時出現橡皮筋效果 */
     body {
         overscroll-behavior: none;
-    }
-    
-    main,
-    .game-container,
-    .canvas-wrapper {
-        touch-action: none;
     }
     
     /* 優化觸摸目標大小 */

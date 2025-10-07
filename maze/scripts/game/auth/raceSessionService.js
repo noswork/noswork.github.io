@@ -90,7 +90,11 @@ export class RaceSessionService {
     }
 
     async submitResult({ totalSeconds, totalSteps }) {
+        console.log('[submitResult] Called with:', { totalSeconds, totalSteps });
+        console.log('[submitResult] Session:', this.session);
+        
         if (!this.session?.id) {
+            console.log('[submitResult] No session ID, returning null');
             const lang = this.settingsManager.getLanguage();
             this.showStatus(getTranslation(lang, 'game.sessionMissing'), 'error');
             return null;
@@ -98,9 +102,21 @@ export class RaceSessionService {
 
         try {
             const accessToken = this.latestSessionToken || await this.refreshSessionToken();
+            console.log('[submitResult] Access token:', accessToken ? 'exists' : 'missing');
+            
             if (!accessToken) {
                 throw new Error('MISSING_TOKEN');
             }
+
+            const requestBody = {
+                action: 'complete',
+                payload: {
+                    session_id: this.session.id,
+                    total_steps: totalSteps,
+                    client_elapsed_seconds: totalSeconds
+                }
+            };
+            console.log('[submitResult] Request body:', requestBody);
 
             const response = await fetch(`${window.SUPABASE_CONFIG?.url}/functions/v1/race-session`, {
                 method: 'POST',
@@ -108,33 +124,42 @@ export class RaceSessionService {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${accessToken}`
                 },
-                body: JSON.stringify({
-                    action: 'complete',
-                    payload: {
-                        session_id: this.session.id,
-                        total_steps: totalSteps,
-                        client_elapsed_seconds: totalSeconds
-                    }
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('[submitResult] Response status:', response.status, response.ok);
+
             if (!response.ok) {
+                const errorText = await response.text();
+                console.log('[submitResult] Error response:', errorText);
                 throw new Error(`HTTP_${response.status}`);
             }
 
             const result = await response.json();
+            console.log('[submitResult] Response JSON:', result);
+            
             if (!result?.success) {
                 throw new Error(result?.error?.code || 'UNKNOWN_RESULT');
             }
 
-            if (result.result?.personal_best) {
+            // 處理新舊兩種回應格式
+            // 新格式: {success: true, result: {total_seconds, total_steps, personal_best}}
+            // 舊格式: {success: true, server_seconds, client_seconds, total_seconds, total_steps, personal_best}
+            const serverResult = result.result || {
+                total_seconds: result.server_seconds || result.total_seconds,
+                total_steps: result.total_steps,
+                personal_best: result.personal_best
+            };
+
+            if (serverResult.personal_best) {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.personalBestSaved'), 'success');
             } else {
                 this.showStatus(getTranslation(this.settingsManager.getLanguage(), 'game.leaderboardNoImprovement'), 'info');
             }
 
+            console.log('[submitResult] Returning result:', serverResult);
             // 返回伺服器計算的結果
-            return result.result;
+            return serverResult;
         } catch (error) {
             console.error('[Race] Verified result submission failed', error);
             const lang = this.settingsManager.getLanguage();

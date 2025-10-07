@@ -27,7 +27,7 @@ export class InputManager {
 
         // 防止長按選擇文字
         document.addEventListener('selectstart', (event) => {
-            if (event.target.closest('.dpad-container')) {
+            if (event.target && event.target.closest && event.target.closest('.dpad-container')) {
                 event.preventDefault();
             }
         });

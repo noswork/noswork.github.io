@@ -126,7 +126,7 @@ class MazeGame {
         }
     }
 
-    init() {
+    async init() {
         this.applySettings();
         this.setupCanvas();
         this.generateMaze();
@@ -136,7 +136,7 @@ class MazeGame {
         this.state.path.push({ x: this.state.player.x, y: this.state.player.y });
         this.uiManager.updateStepCount(this.state.stepCount);
         this.renderer.render();
-        this.startModeSpecificLogic();
+        await this.startModeSpecificLogic();
         requestAnimationFrame(() => this.animate());
     }
 
@@ -316,6 +316,8 @@ class MazeGame {
         });
 
         console.log('[Race] Server result:', serverResult);
+        console.log('[Race] Server total_seconds:', serverResult?.total_seconds);
+        console.log('[Race] Using client time as fallback?', !serverResult?.total_seconds);
 
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
@@ -346,6 +348,8 @@ class MazeGame {
         });
 
         console.log('[Dark] Server result:', serverResult);
+        console.log('[Dark] Server total_seconds:', serverResult?.total_seconds);
+        console.log('[Dark] Using client time as fallback?', !serverResult?.total_seconds);
 
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
@@ -382,7 +386,7 @@ class MazeGame {
         this.uiManager.togglePause(this.state.paused);
     }
 
-    playAgain() {
+    async playAgain() {
         // 隱藏所有結算模態框
         const winModal = document.getElementById('winModal');
         const gameOverModal = document.getElementById('gameOverModal');
@@ -403,37 +407,40 @@ class MazeGame {
         if (this.mode === 'race') {
             if (this.mazeTarget) {
                 this.uiManager.updateMazeCount(`0/${this.mazeTarget}`);
-                this.startRaceTimer();
-                this.raceSessionService.ensureSession({
+                // 先創建 session，再啟動計時器，確保時間同步
+                await this.raceSessionService.ensureSession({
                     mode: this.mode,
                     size: this.size,
                     target: this.mazeTarget
                 });
+                this.startRaceTimer();
             } else if (this.timeLimit) {
                 this.uiManager.updateMazeCount('0');
                 this.startClassicTimer();
             }
         } else if (this.mode === 'dark') {
-            this.startRaceTimer();
-            this.raceSessionService.ensureSession({
+            // 先創建 session，再啟動計時器，確保時間同步
+            await this.raceSessionService.ensureSession({
                 mode: this.mode,
                 size: this.size,
                 target: 1
             });
+            this.startRaceTimer();
         }
     }
 
-    startModeSpecificLogic() {
+    async startModeSpecificLogic() {
         if (this.mode === 'race') {
             this.uiManager.showTimerSection();
             if (this.mazeTarget) {
                 this.uiManager.updateMazeCount(`0/${this.mazeTarget}`);
-                this.startRaceTimer();
-                this.raceSessionService.ensureSession({
+                // 先創建 session，再啟動計時器，確保時間同步
+                await this.raceSessionService.ensureSession({
                     mode: this.mode,
                     size: this.size,
                     target: this.mazeTarget
                 });
+                this.startRaceTimer();
             } else if (this.timeLimit) {
                 this.uiManager.updateMazeCount('0');
                 this.startClassicTimer();
@@ -441,12 +448,13 @@ class MazeGame {
         } else if (this.mode === 'dark') {
             // Dark mode: single maze with timer
             this.uiManager.showTimerSection();
-            this.startRaceTimer();
-            this.raceSessionService.ensureSession({
+            // 先創建 session，再啟動計時器，確保時間同步
+            await this.raceSessionService.ensureSession({
                 mode: this.mode,
                 size: this.size,
                 target: 1
             });
+            this.startRaceTimer();
         }
     }
 

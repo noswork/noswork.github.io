@@ -146,7 +146,7 @@ class MazeGame {
     setupCanvas() {
         const isMobile = window.innerWidth <= 768;
         const maxWidth = Math.min(window.innerWidth - 40, 900);
-        const verticalReserve = isMobile ? 300 : 200;
+        const verticalReserve = isMobile ? 350 : 200; // 增加手機端的垂直預留空間
         const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 600 : 800);
         const maxSize = Math.min(maxWidth, maxHeight);
 
@@ -157,9 +157,28 @@ class MazeGame {
         this.canvas.width = canvasSize;
         this.canvas.height = canvasSize;
 
+        // 處理手機端視窗高度變化
+        if (isMobile) {
+            this.handleMobileViewportChange();
+        }
+
         window.addEventListener('resize', () => {
             this.setupCanvas();
             this.renderer.render();
+        });
+    }
+
+    handleMobileViewportChange() {
+        // 設置視窗高度為100vh，避免瀏覽器工具欄影響
+        const setViewportHeight = () => {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(setViewportHeight, 100);
         });
     }
 
@@ -334,6 +353,12 @@ class MazeGame {
     }
 
     playAgain() {
+        // 隱藏所有結算模態框
+        const winModal = document.getElementById('winModal');
+        const gameOverModal = document.getElementById('gameOverModal');
+        winModal?.classList.remove('show');
+        gameOverModal?.classList.remove('show');
+
         this.state.gameWon = false;
         this.state.gameOver = false;
         this.state.paused = false;

@@ -23,3 +23,13 @@ export const listenClickOutside = (elementId, callback) => {
     });
 };
 
+export const showLoading = () => {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay?.classList.add('show');
+};
+
+export const hideLoading = () => {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    loadingOverlay?.classList.remove('show');
+};
+

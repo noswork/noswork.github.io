@@ -231,6 +231,12 @@ export const createAuthModal = ({ settingsManager, authService }) => {
         try {
             await authService.signIn({ username, password });
             statusManager.set(getTranslation(settingsManager.getLanguage(), 'auth.signedIn'), 'success');
+            // 登入成功後立即關閉模態框
+            setTimeout(() => {
+                closeModal();
+                signInForm?.reset();
+                statusManager.clear();
+            }, 300);
         } catch (error) {
             const message = statusManager.resolveError(error, AUTH_ERROR_MESSAGE_KEYS.DEFAULT_SIGNIN);
             statusManager.set(message, 'error');

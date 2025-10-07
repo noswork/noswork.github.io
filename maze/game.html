@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>NOS MAZE - Game</title>
     <link rel="stylesheet" href="styles.css">
     <!-- 預加載主題和語言 - 防止閃爍 -->
@@ -128,6 +128,19 @@
                         <span data-i18n="game.backMenu">返回选单</span>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner">
+                <svg viewBox="0 0 100 100">
+                    <!-- Maze pattern in background -->
+                    <path class="maze-path" d="M20,20 L20,80 M30,20 L30,50 M30,60 L30,80 M40,20 L40,40 M40,60 L40,80 M50,20 L50,80 M60,20 L60,40 M60,60 L60,80 M70,30 L70,50 M70,60 L70,80 M80,20 L80,80"/>
+                    <path class="maze-path" d="M20,20 L80,20 M20,30 L50,30 M60,30 L80,30 M20,40 L40,40 M60,40 L80,40 M20,50 L50,50 M60,50 L70,50 M20,60 L30,60 M50,60 L80,60 M20,70 L80,70 M20,80 L80,80"/>
+                    <!-- Animated spinner circle -->
+                    <circle class="spinner-path" cx="50" cy="50" r="35"/>
+                </svg>
             </div>
         </div>
 

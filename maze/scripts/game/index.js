@@ -146,10 +146,14 @@ class MazeGame {
     setupCanvas() {
         const isMobile = window.innerWidth <= 768;
         const maxWidth = Math.min(window.innerWidth - 40, 900);
+        
         // 手機端：計算可用高度
-        // Header 大約 100px，方向鍵區域約 180px (150px高度 + 30px間距)，padding 32px
-        const verticalReserve = isMobile ? 312 : 180;
-        const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 720 : 820);
+        // Header 大約 120px (包含間距)
+        // 方向鍵區域約 200px (高度 + 安全距離)
+        // game-status 區域約 40px
+        // 額外安全邊距 40px
+        const verticalReserve = isMobile ? 400 : 200;
+        const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 600 : 820);
         const maxSize = Math.min(maxWidth, maxHeight);
 
         const cellSize = Math.floor(maxSize / this.state.gridSize);

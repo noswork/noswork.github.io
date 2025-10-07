@@ -1438,7 +1438,6 @@ html.theme-dark .auth-footer-text {
     height: 100vh;
     height: calc(var(--vh, 1vh) * 100); /* 使用動態視窗高度 */
     padding: 1rem;
-    padding-bottom: 0; /* 不需要額外的底部間距，因為方向鍵是固定定位 */
     overflow: hidden;
 }
 
@@ -1512,7 +1511,6 @@ html.theme-dark .auth-footer-text {
     width: 100%;
     max-width: 900px;
     overflow: hidden;
-    margin-bottom: 0; /* 桌面端無需底部邊距 */
 }
 
 .back-btn, .menu-btn {
@@ -1774,11 +1772,6 @@ html.theme-dark .auth-footer-text {
     .dpad-container {
         display: block;
     }
-    
-    /* 給地圖容器添加底部邊距，避免被方向鍵遮擋 */
-    .canvas-wrapper {
-        margin-bottom: 180px; /* 方向鍵高度 + 間距 */
-    }
 }
 
 @media (max-width: 480px) {
@@ -1876,11 +1869,6 @@ html.theme-dark .auth-footer-text {
     .dpad-btn:active {
         background-color: var(--accent-color);
         transform: scale(0.9);
-    }
-    
-    /* 調整地圖容器的底部邊距 */
-    .canvas-wrapper {
-        margin-bottom: 160px; /* 更小屏幕的方向鍵高度 + 間距 */
     }
 }
 

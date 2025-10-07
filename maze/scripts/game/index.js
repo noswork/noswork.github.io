@@ -146,9 +146,9 @@ class MazeGame {
     setupCanvas() {
         const isMobile = window.innerWidth <= 768;
         const maxWidth = Math.min(window.innerWidth - 40, 900);
-        // 手機端：為方向鍵預留約 200px 空間（方向鍵高度 130px + 底部間距 1.5rem + 安全區域）
-        // 桌面端：正常預留空間
-        const verticalReserve = isMobile ? 200 : 180;
+        // 手機端：計算可用高度
+        // Header 大約 100px，方向鍵區域約 180px (150px高度 + 30px間距)，padding 32px
+        const verticalReserve = isMobile ? 312 : 180;
         const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 720 : 820);
         const maxSize = Math.min(maxWidth, maxHeight);
 

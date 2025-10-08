@@ -112,14 +112,30 @@
                 }
                 
                 console.log('Debug mode activated!');
+                
+                // 捕获所有错误
+                window.addEventListener('error', (e) => {
+                    console.error('Global Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno);
+                });
+                
+                window.addEventListener('unhandledrejection', (e) => {
+                    console.error('Unhandled Promise Rejection: ' + e.reason);
+                });
+                
+                // 监控脚本加载
+                document.addEventListener('DOMContentLoaded', () => {
+                    console.log('DOM Content Loaded');
+                    console.log('MAZE_TRANSLATIONS: ' + (typeof window.MAZE_TRANSLATIONS !== 'undefined' ? 'loaded' : 'NOT loaded'));
+                    console.log('getMazeTranslation: ' + (typeof window.getMazeTranslation === 'function' ? 'exists' : 'NOT exists'));
+                });
             }
         })();
     </script>
-    <script src="i18n.js?v=5"></script>
+    <script src="i18n.js?v=6"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="supabase-config.js?v=5" defer></script>
-    <script src="supabase-client.js?v=5" defer></script>
-    <script type="module" src="scripts/game/index.js?v=5"></script>
+    <script src="supabase-config.js?v=6" defer></script>
+    <script src="supabase-client.js?v=6" defer></script>
+    <script type="module" src="scripts/game/index.js?v=6"></script>
 </head>
 <body>
     <div class="game-container">

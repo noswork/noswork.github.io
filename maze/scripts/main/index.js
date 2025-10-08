@@ -156,44 +156,65 @@ const createUserStatusManager = ({ settingsManager, authModal, authService }) =>
     return { update };
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const settingsManager = new SettingsManager();
-    settingsManager.init();
-    window.mazeSettings = settingsManager;
+let initializePromise = null;
 
-    const tabManager = createTabManager();
-    window.mazeTabs = tabManager;
-
-    // 語言變更時，重新應用競速模式描述
-    settingsManager.onLanguageChange((lang) => {
-        const currentRaceMode = tabManager.getCurrentRaceMode();
-        const raceDescription = document.getElementById('raceDescription');
-        if (raceDescription) {
-            const descKey = currentRaceMode === 'dark' ? 'desc.dark' : 'desc.race';
-            raceDescription.textContent = window.getMazeTranslation(lang, descKey);
-        }
-    });
-
-    const supabaseClient = window.supabaseClient;
-    const authService = supabaseClient ? new AuthService(supabaseClient) : null;
-    window.authService = authService;
-
-    const authModal = createAuthModal({ settingsManager, authService });
-
-    const userStatusManager = createUserStatusManager({ settingsManager, authModal, authService });
-
-    if (authService) {
-        await authService.init();
-        authService.onAuthStateChange(async (user) => {
-            await userStatusManager.update(user);
-        });
-    } else {
-        const userStatus = document.getElementById('userStatus');
-        if (userStatus) {
-            userStatus.innerHTML = '<span class="user-chip error">Supabase unavailable</span>';
-        }
+const initializeMainPage = async () => {
+    if (initializePromise) {
+        return initializePromise;
     }
 
-    setupGameButtons({ authService, authModal, settingsManager, tabManager });
-});
+    initializePromise = (async () => {
+        const settingsManager = new SettingsManager();
+        settingsManager.init();
+        window.mazeSettings = settingsManager;
+
+        const tabManager = createTabManager();
+        window.mazeTabs = tabManager;
+
+        settingsManager.onLanguageChange((lang) => {
+            const currentRaceMode = tabManager.getCurrentRaceMode();
+            const raceDescription = document.getElementById('raceDescription');
+            if (raceDescription) {
+                const descKey = currentRaceMode === 'dark' ? 'desc.dark' : 'desc.race';
+                raceDescription.textContent = window.getMazeTranslation(lang, descKey);
+            }
+        });
+
+        const supabaseClient = window.supabaseClient;
+        const authService = supabaseClient ? new AuthService(supabaseClient) : null;
+        window.authService = authService;
+
+        const authModal = createAuthModal({ settingsManager, authService });
+
+        const userStatusManager = createUserStatusManager({ settingsManager, authModal, authService });
+
+        if (authService) {
+            await authService.init();
+            authService.onAuthStateChange(async (user) => {
+                await userStatusManager.update(user);
+            });
+        } else {
+            const userStatus = document.getElementById('userStatus');
+            if (userStatus) {
+                userStatus.innerHTML = '<span class="user-chip error">Supabase unavailable</span>';
+            }
+        }
+
+        setupGameButtons({ authService, authModal, settingsManager, tabManager });
+    })().catch((error) => {
+        console.error('[Main] Failed to initialize page', error);
+    });
+
+    return initializePromise;
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeMainPage();
+    }, {
+        once: true
+    });
+} else {
+    initializeMainPage();
+}
 

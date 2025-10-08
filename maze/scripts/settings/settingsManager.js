@@ -5,7 +5,10 @@ export class SettingsManager {
         this.storage = window.localStorage;
         this.currentLang = this.storage.getItem('maze-lang') || defaultLang;
         this.currentTheme = this.storage.getItem('maze-theme') || defaultTheme;
-        this.cachedSystemMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        this.cachedSystemMediaQuery = typeof window.matchMedia === 'function'
+            ? window.matchMedia('(prefers-color-scheme: dark)')
+            : null;
+        this.systemThemeListener = null;
         this.onLangChangeCallbacks = [];
         this.onThemeChangeCallbacks = [];
     }
@@ -27,11 +30,23 @@ export class SettingsManager {
     }
 
     setupSystemThemeListener() {
-        this.cachedSystemMediaQuery.addEventListener('change', () => {
+        if (!this.cachedSystemMediaQuery) {
+            return;
+        }
+
+        const handler = () => {
             if (this.currentTheme === 'system') {
-                this.applyTheme('system');
+                this.applyTheme('system', { syncUI: false });
             }
-        });
+        };
+
+        if (typeof this.cachedSystemMediaQuery.addEventListener === 'function') {
+            this.cachedSystemMediaQuery.addEventListener('change', handler);
+        } else if (typeof this.cachedSystemMediaQuery.addListener === 'function') {
+            this.cachedSystemMediaQuery.addListener(handler);
+        }
+
+        this.systemThemeListener = handler;
     }
 
     setupEventListeners() {
@@ -108,7 +123,11 @@ export class SettingsManager {
     applyTheme(theme, { syncUI = true } = {}) {
         let resolvedTheme = theme;
         if (theme === 'system') {
-            resolvedTheme = this.cachedSystemMediaQuery.matches ? 'dark' : 'light';
+            const mediaQuery = this.cachedSystemMediaQuery
+                || (typeof window.matchMedia === 'function'
+                    ? window.matchMedia('(prefers-color-scheme: dark)')
+                    : null);
+            resolvedTheme = mediaQuery?.matches ? 'dark' : 'light';
         }
 
         document.documentElement.className = `theme-${resolvedTheme}`;

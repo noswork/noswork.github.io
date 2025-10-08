@@ -48,14 +48,26 @@ class MazeGame {
         this.canvas = document.getElementById('gameCanvas');
         this.params = new URLSearchParams(window.location.search);
         this.supabaseClient = window.supabaseClient || null;
-        this.authService = window.authService || (this.supabaseClient ? new AuthService(this.supabaseClient) : null);
+        if (window.authService) {
+            this.authService = window.authService;
+        } else if (this.supabaseClient) {
+            this.authService = new AuthService(this.supabaseClient);
+            window.authService = this.authService;
+        } else {
+            this.authService = null;
+        }
 
         this.mode = this.params.get('mode');
         this.size = this.params.get('size');
         this.timeLimit = this.params.get('time') ? parseInt(this.params.get('time'), 10) * 60 : null;
         this.mazeTarget = this.params.get('count') ? parseInt(this.params.get('count'), 10) : null;
 
-        this.settingsManager = window.mazeSettings || new SettingsManager();
+        if (!window.mazeSettings) {
+            const settingsManager = new SettingsManager();
+            settingsManager.init();
+            window.mazeSettings = settingsManager;
+        }
+        this.settingsManager = window.mazeSettings;
         this.animationFrameId = null;
 
         this.language = this.settingsManager.getLanguage();
@@ -657,7 +669,24 @@ class MazeGame {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new MazeGame();
-});
+let mazeGameInstance = null;
+
+const initializeMazeGame = () => {
+    if (mazeGameInstance) {
+        return mazeGameInstance;
+    }
+    try {
+        mazeGameInstance = new MazeGame();
+    } catch (error) {
+        console.error('[MazeGame] Failed to initialize', error);
+        mazeGameInstance = null;
+    }
+    return mazeGameInstance;
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeMazeGame, { once: true });
+} else {
+    initializeMazeGame();
+}
 

@@ -31,18 +31,18 @@
         (function() {
             const savedTheme = localStorage.getItem('maze-theme') || 'light';
             const savedLang = localStorage.getItem('maze-lang') || 'zh';
-            
-            // 處理系統主題
+
             let actualTheme = savedTheme;
             if (savedTheme === 'system') {
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                actualTheme = prefersDark ? 'dark' : 'light';
+                const mediaQuery = typeof window.matchMedia === 'function'
+                    ? window.matchMedia('(prefers-color-scheme: dark)')
+                    : null;
+                actualTheme = mediaQuery?.matches ? 'dark' : 'light';
             }
-            
+
             document.documentElement.className = 'theme-' + actualTheme;
             document.documentElement.lang = savedLang === 'zh' ? 'zh-TW' : 'en';
-            
-            // 儲存語言設定供後續使用
+
             window.__MAZE_PRELOAD_LANG__ = savedLang;
         })();
     </script>

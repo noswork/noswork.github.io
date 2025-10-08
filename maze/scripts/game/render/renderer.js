@@ -6,18 +6,32 @@ export class MazeRenderer {
         this.ctx = canvas.getContext('2d');
         this.state = state;
         this.getTheme = getTheme;
+        
+        if (!this.ctx) {
+            console.error('[Renderer] 无法获取Canvas 2D上下文');
+            throw new Error('Canvas 2D context initialization failed');
+        }
+        
+        console.log('[Renderer] 渲染器初始化成功');
     }
 
     render() {
-        const { maze, path, player, anim, start, end, mode } = this.state;
-        const gridSize = this.state.gridSize;
-        const cellSize = this.state.cellSize;
-        const themeColors = getThemeColors(this.getTheme());
-        const ctx = this.ctx;
+        try {
+            const { maze, path, player, anim, start, end, mode } = this.state;
+            const gridSize = this.state.gridSize;
+            const cellSize = this.state.cellSize;
+            const themeColors = getThemeColors(this.getTheme());
+            const ctx = this.ctx;
 
-        // Always use theme background (white or theme color)
-        ctx.fillStyle = themeColors.bg;
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            // 验证必要的数据
+            if (!maze || !maze.length) {
+                console.error('[Renderer] 迷宫数据无效:', maze);
+                return;
+            }
+
+            // Always use theme background (white or theme color)
+            ctx.fillStyle = themeColors.bg;
+            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         if (path.length > 1) {
             ctx.strokeStyle = themeColors.pathStroke;
@@ -88,6 +102,14 @@ export class MazeRenderer {
         // Dark mode: Apply fog of war
         if (mode === 'dark') {
             this.renderDarkModeFog(cellSize, themeColors);
+        }
+        } catch (error) {
+            console.error('[Renderer] 渲染过程中出错:', error);
+            // 显示错误信息在canvas上
+            this.ctx.fillStyle = '#000000';
+            this.ctx.font = '14px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('渲染错误', this.canvas.width / 2, this.canvas.height / 2);
         }
     }
 

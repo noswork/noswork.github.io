@@ -46,14 +46,26 @@ const formatTime = (seconds) => {
 class MazeGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
+        
+        if (!this.canvas) {
+            throw new Error('Canvas元素未找到');
+        }
+        
         this.params = new URLSearchParams(window.location.search);
         this.supabaseClient = window.supabaseClient || null;
         this.authService = window.authService || (this.supabaseClient ? new AuthService(this.supabaseClient) : null);
 
-        this.mode = this.params.get('mode');
-        this.size = this.params.get('size');
+        this.mode = this.params.get('mode') || 'just-maze';
+        this.size = this.params.get('size') || 'mini';
         this.timeLimit = this.params.get('time') ? parseInt(this.params.get('time'), 10) * 60 : null;
         this.mazeTarget = this.params.get('count') ? parseInt(this.params.get('count'), 10) : null;
+        
+        console.log('[Game] 游戏参数:', {
+            mode: this.mode,
+            size: this.size,
+            timeLimit: this.timeLimit,
+            mazeTarget: this.mazeTarget
+        });
 
         this.settingsManager = window.mazeSettings || new SettingsManager();
         this.animationFrameId = null;
@@ -62,6 +74,13 @@ class MazeGame {
         this.theme = this.settingsManager.getTheme();
 
         const gridSize = MAZE_SIZES[this.size] || MAZE_SIZES.mini;
+        
+        console.log('[Game] 网格大小:', { 
+            size: this.size, 
+            gridSize,
+            availableSizes: Object.keys(MAZE_SIZES)
+        });
+        
         this.state = new GameState({ gridSize });
         this.state.gridSize = gridSize;
         this.state.mode = this.mode;
@@ -708,18 +727,30 @@ class MazeGame {
 // 等待所有依赖加载完成后再初始化游戏
 const waitForDependencies = () => {
     return new Promise((resolve) => {
+        let attempts = 0;
+        const maxAttempts = 100; // 最多等待5秒
+        
         const checkDependencies = () => {
+            attempts++;
+            
             // 检查必要的全局变量是否已加载
-            const supabaseReady = typeof window.supabase !== 'undefined';
             const translationsReady = typeof window.MAZE_TRANSLATIONS !== 'undefined';
-            const configReady = typeof window.SUPABASE_CONFIG !== 'undefined' || typeof window.SUPABASE_URL !== 'undefined';
+            const getMazeTranslationReady = typeof window.getMazeTranslation === 'function';
             
-            console.log('[Game Init] 依赖检查:', { supabaseReady, translationsReady, configReady });
+            console.log('[Game Init] 依赖检查 (尝试 ' + attempts + '):', { 
+                translationsReady, 
+                getMazeTranslationReady,
+                translationsExists: !!window.MAZE_TRANSLATIONS
+            });
             
-            if (translationsReady) {
+            if (translationsReady && getMazeTranslationReady) {
+                console.log('[Game Init] ✅ 所有依赖已就绪');
+                resolve();
+            } else if (attempts >= maxAttempts) {
+                console.warn('[Game Init] ⚠️ 等待超时，强制继续初始化');
                 resolve();
             } else {
-                // 继续等待，最多等待5秒
+                // 继续等待
                 setTimeout(checkDependencies, 50);
             }
         };

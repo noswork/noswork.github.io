@@ -46,26 +46,14 @@ const formatTime = (seconds) => {
 class MazeGame {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
-        
-        if (!this.canvas) {
-            throw new Error('Canvas元素未找到');
-        }
-        
         this.params = new URLSearchParams(window.location.search);
         this.supabaseClient = window.supabaseClient || null;
         this.authService = window.authService || (this.supabaseClient ? new AuthService(this.supabaseClient) : null);
 
-        this.mode = this.params.get('mode') || 'just-maze';
-        this.size = this.params.get('size') || 'mini';
+        this.mode = this.params.get('mode');
+        this.size = this.params.get('size');
         this.timeLimit = this.params.get('time') ? parseInt(this.params.get('time'), 10) * 60 : null;
         this.mazeTarget = this.params.get('count') ? parseInt(this.params.get('count'), 10) : null;
-        
-        console.log('[Game] 游戏参数:', {
-            mode: this.mode,
-            size: this.size,
-            timeLimit: this.timeLimit,
-            mazeTarget: this.mazeTarget
-        });
 
         this.settingsManager = window.mazeSettings || new SettingsManager();
         this.animationFrameId = null;
@@ -74,13 +62,6 @@ class MazeGame {
         this.theme = this.settingsManager.getTheme();
 
         const gridSize = MAZE_SIZES[this.size] || MAZE_SIZES.mini;
-        
-        console.log('[Game] 网格大小:', { 
-            size: this.size, 
-            gridSize,
-            availableSizes: Object.keys(MAZE_SIZES)
-        });
-        
         this.state = new GameState({ gridSize });
         this.state.gridSize = gridSize;
         this.state.mode = this.mode;
@@ -187,56 +168,17 @@ class MazeGame {
     }
 
     async init() {
-        try {
-            console.log('[Game] 开始初始化游戏组件...');
-            
-            this.applySettings();
-            console.log('[Game] 设置已应用');
-            
-            this.setupCanvas();
-            console.log('[Game] Canvas已设置:', {
-                width: this.canvas.width,
-                height: this.canvas.height,
-                cellSize: this.state.cellSize,
-                gridSize: this.state.gridSize
-            });
-            
-            this.generateMaze();
-            console.log('[Game] 迷宫已生成:', {
-                mazeSize: this.state.maze.length,
-                start: this.state.start,
-                end: this.state.end,
-                player: this.state.player
-            });
-            
-            this.inputManager.init();
-            console.log('[Game] 输入管理器已初始化');
-            
-            this.uiManager.init();
-            console.log('[Game] UI管理器已初始化');
-            
-            this.uiManager.translateUI();
-            console.log('[Game] UI翻译已应用');
-            
-            this.state.path.push({ x: this.state.player.x, y: this.state.player.y });
-            this.uiManager.updateStepCount(this.state.stepCount);
-            
-            // 确保canvas有有效的上下文再渲染
-            if (this.renderer && this.renderer.ctx) {
-                this.renderer.render();
-                console.log('[Game] 首次渲染完成');
-            } else {
-                throw new Error('Canvas渲染器初始化失败');
-            }
-            
-            await this.startModeSpecificLogic();
-            console.log('[Game] 游戏模式逻辑已启动');
-            
-            // 動畫現在只在需要時啟動，不再持續運行
-        } catch (error) {
-            console.error('[Game] 初始化过程中出错:', error);
-            throw error;
-        }
+        this.applySettings();
+        this.setupCanvas();
+        this.generateMaze();
+        this.inputManager.init();
+        this.uiManager.init();
+        this.uiManager.translateUI();
+        this.state.path.push({ x: this.state.player.x, y: this.state.player.y });
+        this.uiManager.updateStepCount(this.state.stepCount);
+        this.renderer.render();
+        await this.startModeSpecificLogic();
+        // 動畫現在只在需要時啟動，不再持續運行
     }
 
     applySettings() {
@@ -246,58 +188,34 @@ class MazeGame {
 
     setupCanvas() {
         const isMobile = window.innerWidth <= CANVAS_CONSTANTS.MOBILE_BREAKPOINT;
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
-        
-        console.log('[Canvas] 窗口信息:', {
-            isMobile,
-            windowWidth,
-            windowHeight,
-            gridSize: this.state.gridSize
-        });
-        
-        const maxWidth = Math.min(windowWidth - CANVAS_CONSTANTS.PADDING, CANVAS_CONSTANTS.MAX_WIDTH);
-        
-        // 計算可用高度 (考慮 Header、方向鍵等固定元素)
-        const verticalReserve = isMobile 
-            ? CANVAS_CONSTANTS.MOBILE_VERTICAL_RESERVE 
-            : CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
-        const maxHeight = Math.min(
-            windowHeight - verticalReserve, 
-            isMobile ? CANVAS_CONSTANTS.MOBILE_MAX_HEIGHT : CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT
+        const availableWidth = Math.max(
+            window.innerWidth - CANVAS_CONSTANTS.PADDING,
+            this.state.gridSize
         );
-        const maxSize = Math.min(maxWidth, maxHeight);
+        const maxWidth = Math.min(availableWidth, CANVAS_CONSTANTS.MAX_WIDTH);
 
-        const cellSize = Math.floor(maxSize / this.state.gridSize);
-        const canvasSize = cellSize * this.state.gridSize;
+        // 計算可用高度 (考慮 Header、方向鍵等固定元素)
+        const verticalReserve = isMobile
+            ? CANVAS_CONSTANTS.MOBILE_VERTICAL_RESERVE
+            : CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
+        const availableHeight = window.innerHeight - verticalReserve;
+        const heightCap = isMobile
+            ? CANVAS_CONSTANTS.MOBILE_MAX_HEIGHT
+            : CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT;
+        const cappedHeight = Math.min(availableHeight, heightCap);
 
-        // 确保canvas至少有最小尺寸
-        const minSize = 200;
-        const finalCanvasSize = Math.max(canvasSize, minSize);
-        const finalCellSize = Math.floor(finalCanvasSize / this.state.gridSize);
+        // 當有效高度不足時，至少確保使用寬度計算，避免出現 0 或負值的 canvas 尺寸
+        let maxSize = maxWidth;
+        if (cappedHeight > 0) {
+            maxSize = Math.min(maxWidth, cappedHeight);
+        }
 
-        this.state.cellSize = finalCellSize;
-        this.canvas.width = finalCanvasSize;
-        this.canvas.height = finalCanvasSize;
-        
-        console.log('[Canvas] 尺寸计算详情:', {
-            maxWidth,
-            maxHeight,
-            maxSize,
-            verticalReserve,
-            cellSize,
-            canvasSize,
-            finalCanvasSize,
-            finalCellSize,
-            gridSize: this.state.gridSize
-        });
-        
-        // 验证Canvas设置成功
-        console.log('[Canvas] 最终尺寸:', {
-            width: this.canvas.width,
-            height: this.canvas.height,
-            cellSize: this.state.cellSize
-        });
+        const cellSize = Math.max(1, Math.floor(maxSize / this.state.gridSize));
+        const canvasSize = Math.max(cellSize * this.state.gridSize, this.state.gridSize);
+
+        this.state.cellSize = cellSize;
+        this.canvas.width = canvasSize;
+        this.canvas.height = canvasSize;
 
         // 處理手機端視窗高度變化
         if (isMobile) {
@@ -749,95 +667,7 @@ class MazeGame {
     }
 }
 
-// 等待所有依赖加载完成后再初始化游戏
-const waitForDependencies = () => {
-    return new Promise((resolve) => {
-        let attempts = 0;
-        const maxAttempts = 100; // 最多等待5秒
-        
-        const checkDependencies = () => {
-            attempts++;
-            
-            // 检查必要的全局变量是否已加载
-            const translationsReady = typeof window.MAZE_TRANSLATIONS !== 'undefined';
-            const getMazeTranslationReady = typeof window.getMazeTranslation === 'function';
-            
-            console.log('[Game Init] 依赖检查 (尝试 ' + attempts + '):', { 
-                translationsReady, 
-                getMazeTranslationReady,
-                translationsExists: !!window.MAZE_TRANSLATIONS
-            });
-            
-            if (translationsReady && getMazeTranslationReady) {
-                console.log('[Game Init] ✅ 所有依赖已就绪');
-                resolve();
-            } else if (attempts >= maxAttempts) {
-                console.warn('[Game Init] ⚠️ 等待超时，强制继续初始化');
-                resolve();
-            } else {
-                // 继续等待
-                setTimeout(checkDependencies, 50);
-            }
-        };
-        
-        checkDependencies();
-    });
-};
-
-// 初始化游戏的主函数
-const initGame = async () => {
-    try {
-        console.log('[Game Init] 开始初始化游戏...');
-        
-        // 等待依赖加载
-        await waitForDependencies();
-        console.log('[Game Init] 依赖加载完成');
-        
-        // 初始化游戏
-        const game = new MazeGame();
-        console.log('[Game Init] 游戏初始化完成');
-        
-        // 将游戏实例暴露到window以便调试
-        window.mazeGame = game;
-        
-    } catch (error) {
-        console.error('[Game Init] 初始化失败:', error);
-        
-        // 显示错误信息给用户
-        const canvas = document.getElementById('gameCanvas');
-        const gameStatus = document.getElementById('gameStatus');
-        
-        if (gameStatus) {
-            gameStatus.textContent = '遊戲加載失敗，請刷新頁面重試 / Game failed to load, please refresh';
-            gameStatus.className = 'game-status error';
-            gameStatus.style.display = 'block';
-        }
-        
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx && canvas.width > 0 && canvas.height > 0) {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#000000';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('遊戲加載失敗', canvas.width / 2, canvas.height / 2 - 10);
-                ctx.fillText('請刷新頁面重試', canvas.width / 2, canvas.height / 2 + 10);
-            }
-        }
-    }
-};
-
-// 模块加载时立即输出日志
-console.log('[Module] Game module loaded v9');
-
-// 使用DOMContentLoaded确保DOM已加载
-if (document.readyState === 'loading') {
-    console.log('[Module] Waiting for DOMContentLoaded v9...');
-    document.addEventListener('DOMContentLoaded', initGame);
-} else {
-    console.log('[Module] DOM already loaded, initializing immediately v9...');
-    // DOM已经加载完成，直接初始化
-    initGame();
-}
+document.addEventListener('DOMContentLoaded', () => {
+    new MazeGame();
+});
 

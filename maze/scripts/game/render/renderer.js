@@ -6,42 +6,18 @@ export class MazeRenderer {
         this.ctx = canvas.getContext('2d');
         this.state = state;
         this.getTheme = getTheme;
-        
-        if (!this.ctx) {
-            console.error('[Renderer] 无法获取Canvas 2D上下文');
-            throw new Error('Canvas 2D context initialization failed');
-        }
-        
-        console.log('[Renderer] 渲染器初始化成功');
     }
 
     render() {
-        try {
-            const { maze, path, player, anim, start, end, mode } = this.state;
-            const gridSize = this.state.gridSize;
-            const cellSize = this.state.cellSize;
-            const themeColors = getThemeColors(this.getTheme());
-            const ctx = this.ctx;
+        const { maze, path, player, anim, start, end, mode } = this.state;
+        const gridSize = this.state.gridSize;
+        const cellSize = this.state.cellSize;
+        const themeColors = getThemeColors(this.getTheme());
+        const ctx = this.ctx;
 
-            // 验证必要的数据
-            if (!maze || !maze.length) {
-                console.error('[Renderer] 迷宫数据无效:', maze);
-                return;
-            }
-            
-            console.log('[Renderer] 开始渲染:', {
-                canvasSize: `${this.canvas.width}x${this.canvas.height}`,
-                gridSize,
-                cellSize,
-                mazeSize: maze.length,
-                themeColors
-            });
-
-            // Always use theme background (white or theme color)
-            ctx.fillStyle = themeColors.bg;
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            console.log('[Renderer] 背景已填充:', themeColors.bg);
+        // Always use theme background (white or theme color)
+        ctx.fillStyle = themeColors.bg;
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         if (path.length > 1) {
             ctx.strokeStyle = themeColors.pathStroke;
@@ -112,18 +88,6 @@ export class MazeRenderer {
         // Dark mode: Apply fog of war
         if (mode === 'dark') {
             this.renderDarkModeFog(cellSize, themeColors);
-        }
-        
-        console.log('[Renderer] 渲染完成');
-        
-        } catch (error) {
-            console.error('[Renderer] 渲染过程中出错:', error);
-            console.error('[Renderer] 错误堆栈:', error.stack);
-            // 显示错误信息在canvas上
-            this.ctx.fillStyle = '#000000';
-            this.ctx.font = '14px Arial';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText('渲染错误: ' + error.message, this.canvas.width / 2, this.canvas.height / 2);
         }
     }
 

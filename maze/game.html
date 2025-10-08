@@ -44,13 +44,53 @@
             
             // 儲存語言設定供後續使用
             window.__MAZE_PRELOAD_LANG__ = savedLang;
+            
+            // 开发调试：在页面上显示Console日志
+            if (window.location.search.includes('debug=1')) {
+                window.__DEBUG_LOGS__ = [];
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                
+                console.log = function(...args) {
+                    originalLog.apply(console, args);
+                    window.__DEBUG_LOGS__.push({type: 'log', msg: args.join(' ')});
+                    updateDebugPanel();
+                };
+                
+                console.error = function(...args) {
+                    originalError.apply(console, args);
+                    window.__DEBUG_LOGS__.push({type: 'error', msg: args.join(' ')});
+                    updateDebugPanel();
+                };
+                
+                console.warn = function(...args) {
+                    originalWarn.apply(console, args);
+                    window.__DEBUG_LOGS__.push({type: 'warn', msg: args.join(' ')});
+                    updateDebugPanel();
+                };
+                
+                function updateDebugPanel() {
+                    let panel = document.getElementById('__debug_panel__');
+                    if (!panel) {
+                        panel = document.createElement('div');
+                        panel.id = '__debug_panel__';
+                        panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-size:10px;padding:5px;z-index:99999;font-family:monospace;';
+                        document.body.appendChild(panel);
+                    }
+                    panel.innerHTML = window.__DEBUG_LOGS__.slice(-20).map(l => 
+                        `<div style="color:${l.type==='error'?'#f00':l.type==='warn'?'#ff0':'#0f0'}">${l.msg}</div>`
+                    ).join('');
+                    panel.scrollTop = panel.scrollHeight;
+                }
+            }
         })();
     </script>
-    <script src="i18n.js?v=3"></script>
+    <script src="i18n.js?v=4"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="supabase-config.js?v=3" defer></script>
-    <script src="supabase-client.js?v=3" defer></script>
-    <script type="module" src="scripts/game/index.js?v=3"></script>
+    <script src="supabase-config.js?v=4" defer></script>
+    <script src="supabase-client.js?v=4" defer></script>
+    <script type="module" src="scripts/game/index.js?v=4"></script>
 </head>
 <body>
     <div class="game-container">

@@ -56,7 +56,7 @@
             margin-top: 30px;
         }
     </style>
-    <script src="i18n.js?v=3"></script>
+    <script src="i18n.js?v=4"></script>
 </head>
 <body>
     <h1>🔍 NOS MAZE 调试工具</h1>
@@ -64,12 +64,19 @@
     <div id="status"></div>
     
     <h2>测试步骤</h2>
+    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin: 15px 0;">
+        <h3 style="margin-top: 0;">📱 手机端调试说明</h3>
+        <p><strong>如果游戏Canvas空白，请点击下方"进入游戏(调试模式)"</strong></p>
+        <p>调试模式会在屏幕底部显示绿色/红色的Console日志，可以看到具体哪里出错了。</p>
+    </div>
+    
     <button onclick="runTests()">运行所有测试</button>
     <button onclick="testCanvas()">测试Canvas</button>
     <button onclick="testTranslations()">测试翻译</button>
     <button onclick="setLanguage('zh')">设置中文</button>
     <button onclick="setLanguage('en')">设置英文</button>
     <button onclick="window.location.href='game.html?mode=just-maze&size=mini'">进入游戏</button>
+    <button onclick="window.location.href='game.html?mode=just-maze&size=mini&debug=1'" style="background:#f00; color:#fff">进入游戏(调试模式)</button>
     
     <div id="testResults"></div>
     

@@ -28,10 +28,20 @@ export class MazeRenderer {
                 console.error('[Renderer] 迷宫数据无效:', maze);
                 return;
             }
+            
+            console.log('[Renderer] 开始渲染:', {
+                canvasSize: `${this.canvas.width}x${this.canvas.height}`,
+                gridSize,
+                cellSize,
+                mazeSize: maze.length,
+                themeColors
+            });
 
             // Always use theme background (white or theme color)
             ctx.fillStyle = themeColors.bg;
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            console.log('[Renderer] 背景已填充:', themeColors.bg);
 
         if (path.length > 1) {
             ctx.strokeStyle = themeColors.pathStroke;
@@ -103,13 +113,17 @@ export class MazeRenderer {
         if (mode === 'dark') {
             this.renderDarkModeFog(cellSize, themeColors);
         }
+        
+        console.log('[Renderer] 渲染完成');
+        
         } catch (error) {
             console.error('[Renderer] 渲染过程中出错:', error);
+            console.error('[Renderer] 错误堆栈:', error.stack);
             // 显示错误信息在canvas上
             this.ctx.fillStyle = '#000000';
             this.ctx.font = '14px Arial';
             this.ctx.textAlign = 'center';
-            this.ctx.fillText('渲染错误', this.canvas.width / 2, this.canvas.height / 2);
+            this.ctx.fillText('渲染错误: ' + error.message, this.canvas.width / 2, this.canvas.height / 2);
         }
     }
 

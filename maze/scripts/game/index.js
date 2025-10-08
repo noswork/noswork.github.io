@@ -202,7 +202,12 @@ class MazeGame {
             });
             
             this.generateMaze();
-            console.log('[Game] 迷宫已生成');
+            console.log('[Game] 迷宫已生成:', {
+                mazeSize: this.state.maze.length,
+                start: this.state.start,
+                end: this.state.end,
+                player: this.state.player
+            });
             
             this.inputManager.init();
             console.log('[Game] 输入管理器已初始化');

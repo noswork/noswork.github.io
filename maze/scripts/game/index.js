@@ -246,14 +246,24 @@ class MazeGame {
 
     setupCanvas() {
         const isMobile = window.innerWidth <= CANVAS_CONSTANTS.MOBILE_BREAKPOINT;
-        const maxWidth = Math.min(window.innerWidth - CANVAS_CONSTANTS.PADDING, CANVAS_CONSTANTS.MAX_WIDTH);
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        
+        console.log('[Canvas] 窗口信息:', {
+            isMobile,
+            windowWidth,
+            windowHeight,
+            gridSize: this.state.gridSize
+        });
+        
+        const maxWidth = Math.min(windowWidth - CANVAS_CONSTANTS.PADDING, CANVAS_CONSTANTS.MAX_WIDTH);
         
         // 計算可用高度 (考慮 Header、方向鍵等固定元素)
         const verticalReserve = isMobile 
             ? CANVAS_CONSTANTS.MOBILE_VERTICAL_RESERVE 
             : CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
         const maxHeight = Math.min(
-            window.innerHeight - verticalReserve, 
+            windowHeight - verticalReserve, 
             isMobile ? CANVAS_CONSTANTS.MOBILE_MAX_HEIGHT : CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT
         );
         const maxSize = Math.min(maxWidth, maxHeight);
@@ -262,21 +272,31 @@ class MazeGame {
         const canvasSize = cellSize * this.state.gridSize;
 
         // 确保canvas至少有最小尺寸
-        const finalCanvasSize = Math.max(canvasSize, 200);
-        const finalCellSize = Math.max(cellSize, Math.floor(200 / this.state.gridSize));
+        const minSize = 200;
+        const finalCanvasSize = Math.max(canvasSize, minSize);
+        const finalCellSize = Math.floor(finalCanvasSize / this.state.gridSize);
 
         this.state.cellSize = finalCellSize;
         this.canvas.width = finalCanvasSize;
         this.canvas.height = finalCanvasSize;
         
-        console.log('[Canvas] 尺寸计算:', {
-            isMobile,
+        console.log('[Canvas] 尺寸计算详情:', {
             maxWidth,
             maxHeight,
             maxSize,
-            cellSize: finalCellSize,
-            canvasSize: finalCanvasSize,
+            verticalReserve,
+            cellSize,
+            canvasSize,
+            finalCanvasSize,
+            finalCellSize,
             gridSize: this.state.gridSize
+        });
+        
+        // 验证Canvas设置成功
+        console.log('[Canvas] 最终尺寸:', {
+            width: this.canvas.width,
+            height: this.canvas.height,
+            cellSize: this.state.cellSize
         });
 
         // 處理手機端視窗高度變化

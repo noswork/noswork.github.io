@@ -48,49 +48,78 @@
             // 开发调试：在页面上显示Console日志
             if (window.location.search.includes('debug=1')) {
                 window.__DEBUG_LOGS__ = [];
+                
+                // 立即创建调试面板
+                function createDebugPanel() {
+                    let panel = document.getElementById('__debug_panel__');
+                    if (!panel) {
+                        panel = document.createElement('div');
+                        panel.id = '__debug_panel__';
+                        panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;height:150px;overflow-y:auto;background:#000;color:#0f0;font-size:11px;padding:8px;z-index:999999;font-family:monospace;border-top:3px solid #0f0;';
+                        panel.innerHTML = '<div style="color:#ff0">🔍 调试模式已启动...</div>';
+                        
+                        // 确保在DOM加载后添加
+                        if (document.body) {
+                            document.body.appendChild(panel);
+                        } else {
+                            document.addEventListener('DOMContentLoaded', () => {
+                                document.body.appendChild(panel);
+                            });
+                        }
+                    }
+                    return panel;
+                }
+                
                 const originalLog = console.log;
                 const originalError = console.error;
                 const originalWarn = console.warn;
                 
+                function updateDebugPanel() {
+                    const panel = createDebugPanel();
+                    const logs = window.__DEBUG_LOGS__.slice(-30);
+                    panel.innerHTML = logs.map(l => 
+                        `<div style="color:${l.type==='error'?'#f00':l.type==='warn'?'#ff0':'#0f0'};margin:2px 0;">${l.msg}</div>`
+                    ).join('');
+                    panel.scrollTop = panel.scrollHeight;
+                }
+                
                 console.log = function(...args) {
                     originalLog.apply(console, args);
-                    window.__DEBUG_LOGS__.push({type: 'log', msg: args.join(' ')});
+                    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+                    window.__DEBUG_LOGS__.push({type: 'log', msg: msg});
                     updateDebugPanel();
                 };
                 
                 console.error = function(...args) {
                     originalError.apply(console, args);
-                    window.__DEBUG_LOGS__.push({type: 'error', msg: args.join(' ')});
+                    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+                    window.__DEBUG_LOGS__.push({type: 'error', msg: '❌ ' + msg});
                     updateDebugPanel();
                 };
                 
                 console.warn = function(...args) {
                     originalWarn.apply(console, args);
-                    window.__DEBUG_LOGS__.push({type: 'warn', msg: args.join(' ')});
+                    const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+                    window.__DEBUG_LOGS__.push({type: 'warn', msg: '⚠️ ' + msg});
                     updateDebugPanel();
                 };
                 
-                function updateDebugPanel() {
-                    let panel = document.getElementById('__debug_panel__');
-                    if (!panel) {
-                        panel = document.createElement('div');
-                        panel.id = '__debug_panel__';
-                        panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;max-height:200px;overflow-y:auto;background:#000;color:#0f0;font-size:10px;padding:5px;z-index:99999;font-family:monospace;';
-                        document.body.appendChild(panel);
-                    }
-                    panel.innerHTML = window.__DEBUG_LOGS__.slice(-20).map(l => 
-                        `<div style="color:${l.type==='error'?'#f00':l.type==='warn'?'#ff0':'#0f0'}">${l.msg}</div>`
-                    ).join('');
-                    panel.scrollTop = panel.scrollHeight;
+                // 立即创建面板
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', createDebugPanel);
+                } else {
+                    createDebugPanel();
                 }
+                
+                console.log('Debug mode activated!');
             }
         })();
     </script>
-    <script src="i18n.js?v=4"></script>
+    <script src="i18n.js?v=5"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
-    <script src="supabase-config.js?v=4" defer></script>
-    <script src="supabase-client.js?v=4" defer></script>
-    <script type="module" src="scripts/game/index.js?v=4"></script>
+    <script src="supabase-config.js?v=5" defer></script>
+    <script src="supabase-client.js?v=5" defer></script>
+    <script type="module" src="scripts/game/index.js?v=5"></script>
 </head>
 <body>
     <div class="game-container">

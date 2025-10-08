@@ -12,6 +12,14 @@ export class RaceSessionService {
         this.pendingSessionPromise = null; // 用於防止重複請求
     }
 
+    reset() {
+        this.session = null;
+        this.sessionStartInProgress = false;
+        this.latestSessionToken = null;
+        this.pendingSessionPromise = null;
+        console.log('[Race] Session state reset');
+    }
+
     async refreshSessionToken() {
         if (!this.supabaseClient) {
             this.latestSessionToken = null;
@@ -19,6 +27,7 @@ export class RaceSessionService {
         }
 
         try {
+            // First try to get the current session
             const { data, error } = await this.supabaseClient.auth.getSession();
             if (error) {
                 console.error('[Race] Unable to refresh session token', error);
@@ -26,8 +35,34 @@ export class RaceSessionService {
                 return null;
             }
 
-            const token = data?.session?.access_token || null;
+            // Validate that we have a complete session with all required fields
+            const session = data?.session;
+            if (!session || !session.access_token || !session.user) {
+                console.warn('[Race] Session is incomplete or missing:', {
+                    hasSession: !!session,
+                    hasToken: !!session?.access_token,
+                    hasUser: !!session?.user
+                });
+                this.latestSessionToken = null;
+                return null;
+            }
+
+            // Check if the token is expired
+            const expiresAt = session.expires_at;
+            if (expiresAt) {
+                const expiresAtMs = expiresAt * 1000; // Convert to milliseconds
+                const now = Date.now();
+                if (now >= expiresAtMs) {
+                    console.warn('[Race] Access token has expired at', new Date(expiresAtMs).toISOString());
+                    this.latestSessionToken = null;
+                    return null;
+                }
+            }
+
+            const token = session.access_token;
             this.latestSessionToken = token;
+            console.log('[Race] Valid access token obtained');
+            
             return token;
         } catch (error) {
             console.error('[Race] Failed to obtain session token', error);
@@ -54,11 +89,20 @@ export class RaceSessionService {
 
         const user = this.authService.getUser();
         if (!user) {
+            console.warn('[Race] No user found when trying to ensure session');
             return;
         }
 
         const accessToken = this.latestSessionToken || await this.refreshSessionToken();
         if (!accessToken) {
+            console.error('[Race] No access token available. User might need to re-authenticate.');
+            
+            // Clear any stale session data
+            this.session = null;
+            this.latestSessionToken = null;
+            
+            const lang = this.settingsManager.getLanguage();
+            this.showStatus(getTranslation(lang, 'game.sessionTokenMissing'), 'error');
             return;
         }
 
@@ -80,6 +124,25 @@ export class RaceSessionService {
                 });
 
                 if (!response.ok) {
+                    // Try to get error details from response
+                    let errorDetails = '';
+                    try {
+                        const errorBody = await response.json();
+                        errorDetails = errorBody?.error?.message || JSON.stringify(errorBody);
+                    } catch {
+                        errorDetails = await response.text();
+                    }
+                    console.error(`[Race] Server returned ${response.status}:`, errorDetails);
+                    
+                    // If 401, the session might have expired - try refreshing
+                    if (response.status === 401) {
+                        console.log('[Race] Got 401, attempting to refresh session token...');
+                        const newToken = await this.refreshSessionToken();
+                        if (newToken !== accessToken) {
+                            console.log('[Race] Token was refreshed, session might work on retry');
+                        }
+                    }
+                    
                     throw new Error(`HTTP_${response.status}`);
                 }
 

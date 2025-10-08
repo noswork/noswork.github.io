@@ -101,7 +101,8 @@
             'game.leaderboardNoImprovement': '本次成績沒有超越你的最佳紀錄。',
             'game.sessionStartFailed': '無法建立挑戰會話，成績不會被記錄。',
             'game.sessionCompleteFailed': '無法驗證挑戰成績，請稍後再試。',
-            'game.sessionMissing': '沒有有效的挑戰會話，無法儲存成績。'
+            'game.sessionMissing': '沒有有效的挑戰會話，無法儲存成績。',
+            'game.sessionTokenMissing': '登入狀態已失效，請重新登入以記錄成績。'
         },
         en: {
             'tab.justMaze': 'Just Maze',
@@ -200,7 +201,8 @@
             'game.leaderboardNoImprovement': 'This run did not beat your best record yet.',
             'game.sessionStartFailed': 'Could not start a verified race session, your score will not be recorded.',
             'game.sessionCompleteFailed': 'Could not verify the race result. Please try again.',
-            'game.sessionMissing': 'No active race session; result cannot be saved.'
+            'game.sessionMissing': 'No active race session; result cannot be saved.',
+            'game.sessionTokenMissing': 'Authentication session expired. Please sign in again to record your score.'
         }
     };
 

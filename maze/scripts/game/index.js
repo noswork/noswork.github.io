@@ -162,6 +162,12 @@ class MazeGame {
             }
         }
 
+        // If user logged out, reset race session state
+        if (!user) {
+            this.raceSessionService.reset();
+            return;
+        }
+
         if (this.mode === 'race' && this.mazeTarget) {
             await this.raceSessionService.refreshSessionToken();
             await this.raceSessionService.ensureSession({

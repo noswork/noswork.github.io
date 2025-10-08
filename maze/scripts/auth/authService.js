@@ -306,9 +306,25 @@ export class AuthService {
         const { data, error } = await this.client.auth.getSession();
         if (error) {
             console.error('[AuthService] Failed to retrieve session:', error);
+            
+            // If session retrieval fails, clear any stale local data
+            const errorMsg = error.message?.toLowerCase() || '';
+            if (errorMsg.includes('session') || errorMsg.includes('jwt') || error.status === 401) {
+                console.warn('[AuthService] Clearing potentially stale session data');
+                await this.client.auth.signOut({ scope: 'local' });
+            }
         }
 
-        this.currentUser = await this.enrichUser(data?.session?.user || null);
+        // Validate session completeness
+        const session = data?.session;
+        if (session && (!session.access_token || !session.user)) {
+            console.warn('[AuthService] Incomplete session detected, clearing local data');
+            await this.client.auth.signOut({ scope: 'local' });
+            this.currentUser = null;
+        } else {
+            this.currentUser = await this.enrichUser(session?.user || null);
+        }
+        
         this.notifyAuthStateChange();
 
         this.client.auth.onAuthStateChange(async (_event, session) => {
@@ -439,8 +455,31 @@ export class AuthService {
     }
 
     async signOut() {
-        const { error } = await this.client.auth.signOut();
-        if (error) throw error;
+        try {
+            const { error } = await this.client.auth.signOut();
+            
+            // Ignore certain errors that indicate the session is already invalid
+            if (error) {
+                const errorMsg = error.message?.toLowerCase() || '';
+                const isSessionMissing = error.name === 'AuthSessionMissingError' 
+                    || errorMsg.includes('session missing')
+                    || errorMsg.includes('no session')
+                    || error.status === 403;
+                
+                if (isSessionMissing) {
+                    console.warn('[AuthService] Session already invalid, clearing local state:', error.message);
+                    // Session is already gone on server, just clear local state
+                    this.currentUser = null;
+                    this.notifyAuthStateChange();
+                    return;
+                }
+                
+                throw error;
+            }
+        } catch (error) {
+            console.error('[AuthService] Sign out error:', error);
+            throw error;
+        }
     }
 }
 

@@ -7,6 +7,7 @@ dev-tools/
 # Editor
 .vscode/
 .idea/
+.cursor/
 
 # 環境變數
 .env

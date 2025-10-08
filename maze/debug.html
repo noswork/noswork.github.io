@@ -56,7 +56,7 @@
             margin-top: 30px;
         }
     </style>
-    <script src="i18n.js"></script>
+    <script src="i18n.js?v=3"></script>
 </head>
 <body>
     <h1>🔍 NOS MAZE 调试工具</h1>
@@ -67,6 +67,8 @@
     <button onclick="runTests()">运行所有测试</button>
     <button onclick="testCanvas()">测试Canvas</button>
     <button onclick="testTranslations()">测试翻译</button>
+    <button onclick="setLanguage('zh')">设置中文</button>
+    <button onclick="setLanguage('en')">设置英文</button>
     <button onclick="window.location.href='game.html?mode=just-maze&size=mini'">进入游戏</button>
     
     <div id="testResults"></div>
@@ -88,14 +90,27 @@
             log.push(`[${type.toUpperCase()}] ${message}`);
         }
         
+        function setLanguage(lang) {
+            localStorage.setItem('maze-lang', lang);
+            window.__MAZE_PRELOAD_LANG__ = lang;
+            addStatus(`✅ 语言已设置为: ${lang === 'zh' ? '中文' : '英文'}`, 'success');
+            addStatus('请刷新页面或重新运行测试', 'info');
+            showSystemInfo();
+        }
+        
         function showSystemInfo() {
+            const savedLang = localStorage.getItem('maze-lang');
+            const preloadLang = window.__MAZE_PRELOAD_LANG__;
+            
             const info = {
                 'User Agent': navigator.userAgent,
                 '屏幕尺寸': `${window.screen.width} x ${window.screen.height}`,
                 '视口尺寸': `${window.innerWidth} x ${window.innerHeight}`,
                 '设备像素比': window.devicePixelRatio,
                 '触摸支持': 'ontouchstart' in window ? '是' : '否',
-                'Local Storage': localStorage.getItem('maze-lang') || '未设置'
+                'LocalStorage语言': savedLang || '未设置',
+                '预加载语言': preloadLang || '未设置',
+                'MAZE_TRANSLATIONS': typeof window.MAZE_TRANSLATIONS !== 'undefined' ? '已加载' : '未加载'
             };
             
             let html = '<pre>';
@@ -190,9 +205,16 @@
             addStatus(`中文翻译: "${testKey}" = "${zhTranslation}"`, zhTranslation !== testKey ? 'success' : 'error');
             addStatus(`英文翻译: "${testKey}" = "${enTranslation}"`, enTranslation !== testKey ? 'success' : 'error');
             
-            // 检查预加载语言
+            // 检查预加载语言和LocalStorage
             const preloadLang = window.__MAZE_PRELOAD_LANG__;
+            const storedLang = localStorage.getItem('maze-lang');
+            
+            addStatus(`LocalStorage语言: ${storedLang || '未设置'}`, storedLang ? 'success' : 'error');
             addStatus(`预加载语言: ${preloadLang || '未设置'}`, preloadLang ? 'success' : 'error');
+            
+            if (!storedLang) {
+                addStatus('⚠️ 语言未设置，点击上方按钮设置语言', 'error');
+            }
         }
         
         function runTests() {

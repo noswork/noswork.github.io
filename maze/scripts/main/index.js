@@ -18,10 +18,18 @@ const createTabManager = () => {
             localStorage.setItem('maze-current-tab', tabId);
         }
         tabButtons.forEach((btn) => {
-            btn.classList.toggle('active', btn.dataset.tab === tabId);
+            const isActive = btn.dataset.tab === tabId;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
         tabContents.forEach((content) => {
-            content.classList.toggle('active', content.id === `${tabId}-tab`);
+            const isActive = content.id === `${tabId}-tab`;
+            content.classList.toggle('active', isActive);
+            if (isActive) {
+                content.removeAttribute('hidden');
+            } else {
+                content.setAttribute('hidden', '');
+            }
         });
     };
 
@@ -36,6 +44,15 @@ const createTabManager = () => {
         raceModeContents.forEach((content) => {
             content.classList.toggle('active', content.id === `${raceMode}-race`);
         });
+        
+        // 更新競速模式的描述文字
+        const raceDescription = document.getElementById('raceDescription');
+        if (raceDescription) {
+            const lang = localStorage.getItem('maze-lang') || 'zh';
+            const descKey = raceMode === 'dark' ? 'desc.dark' : 'desc.race';
+            raceDescription.textContent = window.getMazeTranslation(lang, descKey);
+            raceDescription.dataset.i18n = descKey;
+        }
     };
 
     tabButtons.forEach((btn) => {
@@ -146,6 +163,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tabManager = createTabManager();
     window.mazeTabs = tabManager;
+
+    // 語言變更時，重新應用競速模式描述
+    settingsManager.onLanguageChange((lang) => {
+        const currentRaceMode = tabManager.getCurrentRaceMode();
+        const raceDescription = document.getElementById('raceDescription');
+        if (raceDescription) {
+            const descKey = currentRaceMode === 'dark' ? 'desc.dark' : 'desc.race';
+            raceDescription.textContent = window.getMazeTranslation(lang, descKey);
+        }
+    });
 
     const supabaseClient = window.supabaseClient;
     const authService = supabaseClient ? new AuthService(supabaseClient) : null;

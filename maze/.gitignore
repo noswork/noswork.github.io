@@ -1,0 +1,25 @@
+# 開發者工具（不提交到版本控制）
+dev-tools/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# 環境變數
+.env
+.env.local
+
+# 依賴
+node_modules/
+
+# 日誌
+*.log
+npm-debug.log*
+
+# 臨時文件
+*.tmp
+*.temp
+

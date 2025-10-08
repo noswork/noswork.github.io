@@ -53,11 +53,11 @@
             
             <!-- Header Right: User Status & Settings -->
             <div class="header-right">
-                <div class="user-status user-status-loading" id="userStatus">
+                <div class="user-status user-status-loading" id="userStatus" role="status" aria-live="polite">
                     <span class="loading-placeholder"></span>
                 </div>
-                <button class="settings-btn" id="settingsBtn" aria-label="Settings">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <button class="settings-btn" id="settingsBtn" aria-label="開啟設定" title="設定">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/>
                     </svg>
                 </button>
@@ -65,15 +65,15 @@
         </header>
 
         <!-- Tab Navigation -->
-        <nav class="tab-nav">
-            <button class="tab-btn active" data-tab="just-maze" data-i18n="tab.justMaze">Just Maze</button>
-            <button class="tab-btn" data-tab="faultless" data-i18n="tab.faultless">Faultless</button>
-            <button class="tab-btn" data-tab="race" data-i18n="tab.race">Race Clock</button>
+        <nav class="tab-nav" role="tablist" aria-label="遊戲模式選擇">
+            <button class="tab-btn active" data-tab="just-maze" data-i18n="tab.justMaze" role="tab" aria-selected="true" aria-controls="just-maze-tab">Just Maze</button>
+            <button class="tab-btn" data-tab="faultless" data-i18n="tab.faultless" role="tab" aria-selected="false" aria-controls="faultless-tab">Faultless</button>
+            <button class="tab-btn" data-tab="race" data-i18n="tab.race" role="tab" aria-selected="false" aria-controls="race-tab">Race Clock</button>
         </nav>
 
         <main class="tab-content-wrapper">
             <!-- Just Maze Tab -->
-            <div class="tab-content active" id="just-maze-tab">
+            <div class="tab-content active" id="just-maze-tab" role="tabpanel" aria-labelledby="just-maze-tab">
                 <p class="description" data-i18n="desc.justMaze">Straight up mazes for those who want to lose themselves with no stress, or at least a little stress.</p>
                 <div class="button-grid">
                     <button class="game-btn" data-mode="just-maze" data-size="mini">
@@ -92,7 +92,7 @@
             </div>
 
             <!-- Faultless Tab -->
-            <div class="tab-content" id="faultless-tab">
+            <div class="tab-content" id="faultless-tab" role="tabpanel" aria-labelledby="faultless-tab" hidden>
                 <p class="description" data-i18n="desc.faultless">Complete the maze with no backtracking or wall hitting allowed. One mistake sends you back to start. It's harder than you think.</p>
                 <div class="button-grid">
                     <button class="game-btn" data-mode="faultless" data-size="mini">
@@ -108,8 +108,8 @@
             </div>
 
             <!-- Race the Clock Tab -->
-            <div class="tab-content" id="race-tab">
-                <p class="description" data-i18n="desc.race">挑战完成指定数量的迷宫，看看你能多快完成！</p>
+            <div class="tab-content" id="race-tab" role="tabpanel" aria-labelledby="race-tab" hidden>
+                <p class="description" id="raceDescription" data-i18n="desc.race">挑战完成指定数量的迷宫，看看你能多快完成！</p>
                 
                 <!-- Race Mode Sub-tabs -->
                 <nav class="race-sub-nav">
@@ -214,7 +214,6 @@
 
                 <!-- Dark Race Mode -->
                 <div class="race-mode-content" id="dark-race">
-                    <p class="mode-description" data-i18n="desc.dark">在黑暗中探索迷宮，只能看見一小塊區域。考驗你的記憶力和方向感！</p>
                     <div class="race-grid">
                         <div class="race-option">
                             <h3 data-i18n="size.teensy">微型</h3>
@@ -336,12 +335,12 @@
             <form class="auth-form hidden" id="signUpForm">
                 <div class="auth-field">
                     <label for="signupUsername" data-i18n="auth.usernameLabel">使用者名稱</label>
-                    <input type="text" id="signupUsername" placeholder="玩家名稱" required data-i18n-placeholder="auth.usernamePlaceholder" minlength="2" maxlength="32" autocomplete="username">
+                    <input type="text" id="signupUsername" placeholder="玩家名稱" required data-i18n-placeholder="auth.usernamePlaceholder" minlength="2" maxlength="32" autocomplete="username" pattern="[\p{L}\p{N}\s._-]+" title="只允許字母、數字、空格和基本符號">
                 </div>
                 <div class="auth-field password-field">
                     <label for="signupPassword" data-i18n="auth.passwordLabel">密碼</label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="signupPassword" placeholder="********" required data-i18n-placeholder="auth.passwordPlaceholder" minlength="6" autocomplete="new-password">
+                        <input type="password" id="signupPassword" placeholder="********" required data-i18n-placeholder="auth.passwordPlaceholder" minlength="6" maxlength="128" autocomplete="new-password">
                         <button type="button" class="toggle-password" data-target="signupPassword" aria-label="Toggle password visibility">
                             <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -363,7 +362,7 @@
                 <div class="auth-field password-field">
                     <label for="signupPasswordConfirm" data-i18n="auth.confirmPasswordLabel">確認密碼</label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="signupPasswordConfirm" placeholder="********" required data-i18n-placeholder="auth.confirmPasswordPlaceholder" minlength="6" autocomplete="new-password">
+                        <input type="password" id="signupPasswordConfirm" placeholder="********" required data-i18n-placeholder="auth.confirmPasswordPlaceholder" minlength="6" maxlength="128" autocomplete="new-password">
                         <button type="button" class="toggle-password" data-target="signupPasswordConfirm" aria-label="Toggle password visibility">
                             <svg class="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>

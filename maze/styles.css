@@ -14,6 +14,12 @@
     --button-hover-bg: #ffffff;
     --button-hover-text: #000000;
     --accent-color: #3b82f6;
+    
+    /* 動畫相關 */
+    --transition-fast: 0.15s;
+    --transition-normal: 0.25s;
+    --transition-slow: 0.3s;
+    --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
@@ -573,10 +579,11 @@ header,
     border: 2px solid var(--button-bg);
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-normal) var(--ease-out);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     min-height: 44px;
     white-space: nowrap;
+    will-change: transform, box-shadow;
 }
 
 .header-nav-btn:hover {
@@ -776,10 +783,12 @@ header,
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all var(--transition-normal) var(--ease-out);
     border-radius: 8px;
     position: relative;
     overflow: hidden;
+    /* 優化動畫性能 */
+    will-change: transform, box-shadow;
 }
 
 .game-btn::before {
@@ -1979,5 +1988,257 @@ html.theme-dark .auth-footer-text {
     100% {
         stroke-dasharray: 89, 200;
         stroke-dashoffset: -124;
+    }
+}
+
+/* Developer Tools Panel */
+.dev-panel {
+    position: fixed;
+    top: 80px;
+    right: -350px;
+    width: 320px;
+    background-color: var(--bg-color);
+    border: 2px solid var(--accent-color);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    transition: right 0.3s ease;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.dev-panel-visible {
+    right: 20px;
+}
+
+.dev-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--accent-color);
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.dev-panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dev-panel-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+.dev-panel-close:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dev-panel-content {
+    padding: 16px;
+}
+
+.dev-control-group {
+    margin-bottom: 16px;
+}
+
+.dev-control-group:last-child {
+    margin-bottom: 0;
+}
+
+.dev-label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.dev-btn {
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 8px;
+}
+
+.dev-btn:last-child {
+    margin-bottom: 0;
+}
+
+.dev-btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.dev-btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.dev-btn-secondary {
+    background-color: #ef4444;
+    color: white;
+}
+
+.dev-btn-secondary:hover {
+    background-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+.dev-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-color);
+    outline: none;
+    margin: 8px 0;
+    -webkit-appearance: none;
+}
+
+.dev-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.dev-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+.dev-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s ease;
+}
+
+.dev-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+}
+
+.dev-value {
+    display: inline-block;
+    margin-left: 8px;
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.dev-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.dev-checkbox {
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.dev-status {
+    margin-top: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    text-align: center;
+    min-height: 20px;
+}
+
+.dev-status-info {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.dev-status-success {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.dev-status-warning {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.dev-status-error {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Developer Toggle Button */
+.dev-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 9998;
+    transition: all 0.3s ease;
+}
+
+.dev-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.dev-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .dev-panel {
+        width: calc(100% - 40px);
+        right: -100%;
+        top: 60px;
+    }
+    
+    .dev-panel-visible {
+        right: 20px;
+    }
+    
+    .dev-toggle-btn {
+        bottom: 80px;
+        right: 16px;
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
     }
 }

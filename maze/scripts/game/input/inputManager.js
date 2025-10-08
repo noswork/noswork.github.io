@@ -4,6 +4,16 @@ export class InputManager {
         this.onMove = onMove;
         this.onTogglePause = onTogglePause;
         this.isInteractable = isInteractable;
+        
+        // 儲存事件處理器引用，以便之後清理
+        this.eventHandlers = {
+            keyboard: null,
+            touchStart: null,
+            touchEnd: null,
+            touchMove: null,
+            touchEndPreventZoom: null,
+            selectStart: null
+        };
     }
 
     init() {
@@ -13,28 +23,54 @@ export class InputManager {
         this.setupButtons();
         this.setupMobileOptimizations();
     }
+    
+    // 清理事件監聽器，避免記憶體洩漏
+    destroy() {
+        if (this.eventHandlers.keyboard) {
+            document.removeEventListener('keydown', this.eventHandlers.keyboard);
+        }
+        if (this.canvas) {
+            if (this.eventHandlers.touchStart) {
+                this.canvas.removeEventListener('touchstart', this.eventHandlers.touchStart);
+            }
+            if (this.eventHandlers.touchEnd) {
+                this.canvas.removeEventListener('touchend', this.eventHandlers.touchEnd);
+            }
+            if (this.eventHandlers.touchMove) {
+                this.canvas.removeEventListener('touchmove', this.eventHandlers.touchMove);
+            }
+        }
+        if (this.eventHandlers.touchEndPreventZoom) {
+            document.removeEventListener('touchend', this.eventHandlers.touchEndPreventZoom);
+        }
+        if (this.eventHandlers.selectStart) {
+            document.removeEventListener('selectstart', this.eventHandlers.selectStart);
+        }
+    }
 
     setupMobileOptimizations() {
         // 防止雙擊縮放
         let lastTouchEnd = 0;
-        document.addEventListener('touchend', (event) => {
+        this.eventHandlers.touchEndPreventZoom = (event) => {
             const now = (new Date()).getTime();
             if (now - lastTouchEnd <= 300) {
                 event.preventDefault();
             }
             lastTouchEnd = now;
-        }, false);
+        };
+        document.addEventListener('touchend', this.eventHandlers.touchEndPreventZoom, false);
 
         // 防止長按選擇文字
-        document.addEventListener('selectstart', (event) => {
+        this.eventHandlers.selectStart = (event) => {
             if (event.target && event.target.closest && event.target.closest('.dpad-container')) {
                 event.preventDefault();
             }
-        });
+        };
+        document.addEventListener('selectstart', this.eventHandlers.selectStart);
     }
 
     setupKeyboardControls() {
-        document.addEventListener('keydown', (event) => {
+        this.eventHandlers.keyboard = (event) => {
             if (!this.isInteractable()) return;
 
             switch (event.key) {
@@ -69,7 +105,8 @@ export class InputManager {
                 default:
                     break;
             }
-        });
+        };
+        document.addEventListener('keydown', this.eventHandlers.keyboard);
     }
 
     setupTouchControls() {
@@ -78,7 +115,7 @@ export class InputManager {
         let touchStartY = 0;
         let touchStartTime = 0;
 
-        this.canvas.addEventListener('touchstart', (event) => {
+        this.eventHandlers.touchStart = (event) => {
             event.preventDefault();
             const touch = event.touches[0];
             if (!touch) return;
@@ -86,9 +123,10 @@ export class InputManager {
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
             touchStartTime = Date.now();
-        }, { passive: false });
+        };
+        this.canvas.addEventListener('touchstart', this.eventHandlers.touchStart, { passive: false });
 
-        this.canvas.addEventListener('touchend', (event) => {
+        this.eventHandlers.touchEnd = (event) => {
             event.preventDefault();
             if (!this.isInteractable()) return;
             
@@ -111,12 +149,14 @@ export class InputManager {
             } else if (Math.abs(deltaY) > minSwipeDistance) {
                 this.onMove(0, deltaY > 0 ? 1 : -1);
             }
-        }, { passive: false });
+        };
+        this.canvas.addEventListener('touchend', this.eventHandlers.touchEnd, { passive: false });
 
         // 防止觸摸時的默認行為
-        this.canvas.addEventListener('touchmove', (event) => {
+        this.eventHandlers.touchMove = (event) => {
             event.preventDefault();
-        }, { passive: false });
+        };
+        this.canvas.addEventListener('touchmove', this.eventHandlers.touchMove, { passive: false });
     }
 
     setupDpadControls() {

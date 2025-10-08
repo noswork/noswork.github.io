@@ -207,20 +207,37 @@ export class AuthService {
         }
 
         let username = user.user_metadata?.username;
+        let isDeveloper = false;
 
         if (!username) {
             try {
                 const { data, error } = await this.client
                     .from('profiles')
-                    .select('username')
+                    .select('username, is_developer')
                     .eq('id', user.id)
                     .maybeSingle();
 
-                if (!error && data?.username) {
+                if (!error && data) {
                     username = data.username;
+                    isDeveloper = data.is_developer || false;
                 }
             } catch (profileError) {
                 console.error('[AuthService] Failed to fetch profile:', profileError);
+            }
+        } else {
+            // 即使有username，也要獲取is_developer狀態
+            try {
+                const { data, error } = await this.client
+                    .from('profiles')
+                    .select('is_developer')
+                    .eq('id', user.id)
+                    .maybeSingle();
+
+                if (!error && data) {
+                    isDeveloper = data.is_developer || false;
+                }
+            } catch (profileError) {
+                console.error('[AuthService] Failed to fetch developer status:', profileError);
             }
         }
 
@@ -232,7 +249,8 @@ export class AuthService {
             ...user,
             user_metadata: {
                 ...user.user_metadata,
-                username
+                username,
+                is_developer: isDeveloper
             }
         };
     }
@@ -315,9 +333,30 @@ export class AuthService {
     }
 
     async signUp({ username, password }) {
+        // 嚴格的輸入驗證
         const sanitizedUsername = username?.trim();
+        
         if (!sanitizedUsername || sanitizedUsername.length < 2) {
             throw new Error('Display name must be at least 2 characters long.');
+        }
+        
+        if (sanitizedUsername.length > 32) {
+            throw new Error('Display name must not exceed 32 characters.');
+        }
+        
+        // 防止特殊字符注入（只允許字母、數字、空格、中文等常見字符）
+        const usernameRegex = /^[\p{L}\p{N}\s._-]+$/u;
+        if (!usernameRegex.test(sanitizedUsername)) {
+            throw new Error('Display name contains invalid characters.');
+        }
+        
+        // 密碼強度驗證
+        if (!password || password.length < 6) {
+            throw new Error('Password must be at least 6 characters long.');
+        }
+        
+        if (password.length > 128) {
+            throw new Error('Password is too long.');
         }
 
         await this.ensureUsernameAvailable(sanitizedUsername);

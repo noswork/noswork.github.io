@@ -7,6 +7,8 @@ import { generateMaze } from './utils/mazeGenerator.js';
 import { GameUIManager } from './ui/uiManager.js';
 import { RaceTimer, ClassicTimer } from './timers/index.js';
 import { RaceSessionService } from './auth/raceSessionService.js';
+import { AutoSolver } from '../../dev-tools/scripts/autoSolver.js';
+import { DevPanel } from '../../dev-tools/scripts/devPanel.js';
 
 const MAZE_SIZES = {
     teensy: 10,
@@ -14,6 +16,23 @@ const MAZE_SIZES = {
     medium: 25,
     mighty: 35,
     mega: 50
+};
+
+// 動畫相關常量
+const ANIMATION_CONSTANTS = {
+    SPEED: 0.2,           // 動畫速度
+    EASE_POWER: 3         // 緩動函數的指數
+};
+
+// Canvas 尺寸相關常量
+const CANVAS_CONSTANTS = {
+    MAX_WIDTH: 900,
+    PADDING: 20,
+    MOBILE_VERTICAL_RESERVE: 330,
+    DESKTOP_VERTICAL_RESERVE: 200,
+    MOBILE_MAX_HEIGHT: 700,
+    DESKTOP_MAX_HEIGHT: 820,
+    MOBILE_BREAKPOINT: 768
 };
 
 const formatTime = (seconds) => {
@@ -37,6 +56,7 @@ class MazeGame {
         this.mazeTarget = this.params.get('count') ? parseInt(this.params.get('count'), 10) : null;
 
         this.settingsManager = window.mazeSettings || new SettingsManager();
+        this.animationFrameId = null;
 
         this.language = this.settingsManager.getLanguage();
         this.theme = this.settingsManager.getTheme();
@@ -90,6 +110,12 @@ class MazeGame {
             onComplete: () => this.endGame()
         });
 
+        // 開發者工具
+        this.isDeveloper = false;
+        this.autoSolver = null;
+        this.devPanel = null;
+        this.devToggleBtn = null;
+
         this.setupAuthListeners();
         this.init();
     }
@@ -109,6 +135,21 @@ class MazeGame {
     }
 
     async handleAuthStateChange() {
+        const user = this.authService?.getUser();
+        
+        // 檢查開發者身份
+        const wasDeveloper = this.isDeveloper;
+        this.isDeveloper = user?.user_metadata?.is_developer || false;
+        
+        // 如果開發者狀態改變，更新UI
+        if (wasDeveloper !== this.isDeveloper) {
+            if (this.isDeveloper) {
+                this.initDeveloperTools();
+            } else {
+                this.destroyDeveloperTools();
+            }
+        }
+
         if (this.mode === 'race' && this.mazeTarget) {
             await this.raceSessionService.refreshSessionToken();
             await this.raceSessionService.ensureSession({
@@ -137,7 +178,7 @@ class MazeGame {
         this.uiManager.updateStepCount(this.state.stepCount);
         this.renderer.render();
         await this.startModeSpecificLogic();
-        requestAnimationFrame(() => this.animate());
+        // 動畫現在只在需要時啟動，不再持續運行
     }
 
     applySettings() {
@@ -146,16 +187,17 @@ class MazeGame {
     }
 
     setupCanvas() {
-        const isMobile = window.innerWidth <= 768;
-        const maxWidth = Math.min(window.innerWidth - 20, 900); // 減少左右邊距，從40改為20
+        const isMobile = window.innerWidth <= CANVAS_CONSTANTS.MOBILE_BREAKPOINT;
+        const maxWidth = Math.min(window.innerWidth - CANVAS_CONSTANTS.PADDING, CANVAS_CONSTANTS.MAX_WIDTH);
         
-        // 手機端：計算可用高度
-        // Header 大約 80px (優化後)
-        // 方向鍵區域約 200px (高度 + 底部距離)
-        // game-status 區域約 35px
-        // 額外上下邊距 15px
-        const verticalReserve = isMobile ? 330 : 200;
-        const maxHeight = Math.min(window.innerHeight - verticalReserve, isMobile ? 700 : 820);
+        // 計算可用高度 (考慮 Header、方向鍵等固定元素)
+        const verticalReserve = isMobile 
+            ? CANVAS_CONSTANTS.MOBILE_VERTICAL_RESERVE 
+            : CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
+        const maxHeight = Math.min(
+            window.innerHeight - verticalReserve, 
+            isMobile ? CANVAS_CONSTANTS.MOBILE_MAX_HEIGHT : CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT
+        );
         const maxSize = Math.min(maxWidth, maxHeight);
 
         const cellSize = Math.floor(maxSize / this.state.gridSize);
@@ -170,10 +212,16 @@ class MazeGame {
             this.handleMobileViewportChange();
         }
 
-        window.addEventListener('resize', () => {
+        // 清理舊的事件監聽器，避免記憶體洩漏
+        if (this.resizeHandler) {
+            window.removeEventListener('resize', this.resizeHandler);
+        }
+        
+        this.resizeHandler = () => {
             this.setupCanvas();
             this.renderer.render();
-        });
+        };
+        window.addEventListener('resize', this.resizeHandler);
     }
 
     handleMobileViewportChange() {
@@ -206,16 +254,33 @@ class MazeGame {
     }
 
     handleMove(dx, dy) {
+        // 驗證輸入參數
+        if (!Number.isInteger(dx) || !Number.isInteger(dy)) {
+            console.error('[Game] Invalid move parameters:', { dx, dy });
+            return;
+        }
+        
         const { player, gridSize, maze, path } = this.state;
+        
+        // 邊界檢查：確保 player 位置有效
+        if (!player || player.x < 0 || player.x >= gridSize || player.y < 0 || player.y >= gridSize) {
+            console.error('[Game] Invalid player position:', player);
+            return;
+        }
+        
         const newX = player.x + dx;
         const newY = player.y + dy;
 
+        // 檢查新位置是否在迷宮範圍內
         if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize) {
             return;
         }
 
         const cell = maze[player.y]?.[player.x];
-        if (!cell) return;
+        if (!cell) {
+            console.error('[Game] Cell not found at position:', { x: player.x, y: player.y });
+            return;
+        }
 
         const canMove = (dx === 1 && !cell.right) || (dx === -1 && !cell.left) || (dy === 1 && !cell.bottom) || (dy === -1 && !cell.top);
         if (!canMove) {
@@ -241,7 +306,8 @@ class MazeGame {
         this.animateMove(newX, newY);
         this.incrementSteps();
 
-        if (newX === this.state.end.x && newY === this.state.end.y) {
+        // 安全檢查：確保終點存在
+        if (this.state.end && newX === this.state.end.x && newY === this.state.end.y) {
             this.handleWin();
         }
     }
@@ -250,6 +316,11 @@ class MazeGame {
         this.state.anim.start = this.state.anim.progress < 1 ? { ...this.state.anim.player } : { ...this.state.player };
         this.state.player = { x: newX, y: newY };
         this.state.anim.progress = 0;
+        
+        // 如果動畫未在執行，重新啟動動畫循環
+        if (!this.animationFrameId) {
+            this.animate();
+        }
     }
 
     incrementSteps() {
@@ -309,15 +380,22 @@ class MazeGame {
 
         console.log('[Race] Client time:', clientTime, 'steps:', totalSteps);
 
-        // 提交結果並獲取伺服器計算的時間
-        const serverResult = await this.raceSessionService.submitResult({
-            totalSeconds: clientTime,
-            totalSteps
-        });
+        // 檢查是否應該記錄到伺服器（開發者模式下可能不記錄）
+        const shouldRecord = !this.autoSolver || this.autoSolver.getShouldRecordToServer();
+        let serverResult = null;
+        
+        if (shouldRecord) {
+            // 提交結果並獲取伺服器計算的時間
+            serverResult = await this.raceSessionService.submitResult({
+                totalSeconds: clientTime,
+                totalSteps
+            });
 
-        console.log('[Race] Server result:', serverResult);
-        console.log('[Race] Server total_seconds:', serverResult?.total_seconds);
-        console.log('[Race] Using client time as fallback?', !serverResult?.total_seconds);
+            console.log('[Race] Server result:', serverResult);
+            console.log('[Race] Server total_seconds:', serverResult?.total_seconds);
+        } else {
+            console.log('[Race] 開發者模式：不記錄到伺服器');
+        }
 
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
@@ -341,15 +419,22 @@ class MazeGame {
 
         console.log('[Dark] Client time:', clientTime, 'steps:', totalSteps);
 
-        // 提交結果並獲取伺服器計算的時間
-        const serverResult = await this.raceSessionService.submitResult({
-            totalSeconds: clientTime,
-            totalSteps
-        });
+        // 檢查是否應該記錄到伺服器（開發者模式下可能不記錄）
+        const shouldRecord = !this.autoSolver || this.autoSolver.getShouldRecordToServer();
+        let serverResult = null;
+        
+        if (shouldRecord) {
+            // 提交結果並獲取伺服器計算的時間
+            serverResult = await this.raceSessionService.submitResult({
+                totalSeconds: clientTime,
+                totalSteps
+            });
 
-        console.log('[Dark] Server result:', serverResult);
-        console.log('[Dark] Server total_seconds:', serverResult?.total_seconds);
-        console.log('[Dark] Using client time as fallback?', !serverResult?.total_seconds);
+            console.log('[Dark] Server result:', serverResult);
+            console.log('[Dark] Server total_seconds:', serverResult?.total_seconds);
+        } else {
+            console.log('[Dark] 開發者模式：不記錄到伺服器');
+        }
 
         // 使用伺服器返回的時間，如果沒有則使用客戶端時間
         const finalTime = serverResult?.total_seconds ?? clientTime;
@@ -367,14 +452,16 @@ class MazeGame {
 
     animate() {
         if (this.state.anim.progress < 1) {
-            this.state.anim.progress = Math.min(1, this.state.anim.progress + 0.2);
-            const easeProgress = 1 - Math.pow(1 - this.state.anim.progress, 3);
+            this.state.anim.progress = Math.min(1, this.state.anim.progress + ANIMATION_CONSTANTS.SPEED);
+            const easeProgress = 1 - Math.pow(1 - this.state.anim.progress, ANIMATION_CONSTANTS.EASE_POWER);
             this.state.anim.player.x = this.state.anim.start.x + (this.state.player.x - this.state.anim.start.x) * easeProgress;
             this.state.anim.player.y = this.state.anim.start.y + (this.state.player.y - this.state.anim.start.y) * easeProgress;
             this.renderer.render();
+            this.animationFrameId = requestAnimationFrame(() => this.animate());
+        } else {
+            // 動畫完成後不再持續執行，節省性能
+            this.animationFrameId = null;
         }
-
-        requestAnimationFrame(() => this.animate());
     }
 
     togglePause() {
@@ -472,6 +559,101 @@ class MazeGame {
         this.state.gameOver = true;
         this.classicTimer.clear();
         this.uiManager.showGameOverModal(this.state.race.mazesCompleted);
+    }
+
+    // ============= 開發者工具方法 =============
+    
+    initDeveloperTools() {
+        console.log('[Game] 初始化開發者工具');
+        
+        // 創建自動解迷宮工具
+        this.autoSolver = new AutoSolver({
+            onMove: (dx, dy) => this.handleMove(dx, dy),
+            getState: () => this.state,
+            onMazeComplete: (reason) => this.handleAutoMazeComplete(reason),
+            shouldRecordToServer: true
+        });
+
+        // 創建開發者面板
+        this.devPanel = new DevPanel({
+            autoSolver: this.autoSolver,
+            onSpeedChange: (speed) => this.autoSolver?.setSpeed(speed),
+            onRecordChange: (shouldRecord) => this.autoSolver?.setRecordToServer(shouldRecord),
+            onAutoCompleteChange: (autoComplete) => this.autoSolver?.setAutoCompleteMode(autoComplete),
+            getLanguage: () => this.settingsManager.getLanguage()
+        });
+
+        // 創建開發者工具切換按鈕
+        this.createDevToggleButton();
+    }
+
+    createDevToggleButton() {
+        if (this.devToggleBtn) {
+            return;
+        }
+
+        const btn = document.createElement('button');
+        btn.className = 'dev-toggle-btn';
+        btn.innerHTML = '🛠️';
+        btn.title = '開發者工具';
+        btn.addEventListener('click', () => {
+            this.devPanel?.toggle();
+        });
+
+        document.body.appendChild(btn);
+        this.devToggleBtn = btn;
+    }
+
+    handleAutoMazeComplete(reason) {
+        console.log('[Game] 自動迷宮完成:', reason);
+        
+        // 檢查是否需要繼續自動完成下一個迷宮
+        const autoCompleteMode = this.autoSolver?.autoCompleteMode;
+        
+        if (autoCompleteMode && (this.mode === 'race' || this.mode === 'dark')) {
+            // 等待一小段時間後自動開始下一個迷宮
+            setTimeout(() => {
+                // 檢查遊戲是否仍在進行中
+                if (!this.state.gameWon && !this.state.gameOver) {
+                    // 檢查是否還有迷宮要完成
+                    if (this.mode === 'race' && this.mazeTarget) {
+                        if (this.state.race.mazesCompleted < this.mazeTarget) {
+                            console.log('[Game] 自動開始下一個迷宮');
+                            this.autoSolver?.start();
+                        }
+                    } else if (this.mode === 'dark') {
+                        // Dark模式只有一個迷宮，完成後不需要繼續
+                        this.devPanel?.resetButtons();
+                    } else {
+                        // Race模式無限迷宮，繼續下一個
+                        this.autoSolver?.start();
+                    }
+                } else {
+                    this.devPanel?.resetButtons();
+                }
+            }, 500);
+        } else {
+            this.devPanel?.resetButtons();
+        }
+    }
+
+    destroyDeveloperTools() {
+        console.log('[Game] 銷毀開發者工具');
+        
+        if (this.autoSolver) {
+            this.autoSolver.destroy();
+            this.autoSolver = null;
+        }
+
+        if (this.devPanel) {
+            this.devPanel.destroy();
+            this.devPanel = null;
+        }
+
+        if (this.devToggleBtn) {
+            this.devToggleBtn.remove();
+            this.devToggleBtn = null;
+        }
     }
 }
 

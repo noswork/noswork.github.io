@@ -9,6 +9,7 @@ export class RaceSessionService {
         this.session = null;
         this.sessionStartInProgress = false;
         this.latestSessionToken = null;
+        this.pendingSessionPromise = null; // 用於防止重複請求
     }
 
     async refreshSessionToken() {
@@ -36,7 +37,14 @@ export class RaceSessionService {
     }
 
     async ensureSession({ mode, size, target }) {
-        if (!target || this.session?.id || this.sessionStartInProgress) {
+        // 如果已有 session 或正在創建，直接返回
+        if (!target || this.session?.id) {
+            return;
+        }
+        
+        // 如果已有進行中的請求，等待它完成
+        if (this.pendingSessionPromise) {
+            await this.pendingSessionPromise;
             return;
         }
 
@@ -54,39 +62,45 @@ export class RaceSessionService {
             return;
         }
 
-        this.sessionStartInProgress = true;
+        // 創建 Promise 並保存，防止並發請求
+        this.pendingSessionPromise = (async () => {
+            this.sessionStartInProgress = true;
+            
+            try {
+                const response = await fetch(`${window.SUPABASE_CONFIG?.url}/functions/v1/race-session`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`
+                    },
+                    body: JSON.stringify({
+                        action: 'start',
+                        payload: { mode, size, target }
+                    })
+                });
 
-        try {
-            const response = await fetch(`${window.SUPABASE_CONFIG?.url}/functions/v1/race-session`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    action: 'start',
-                    payload: { mode, size, target }
-                })
-            });
+                if (!response.ok) {
+                    throw new Error(`HTTP_${response.status}`);
+                }
 
-            if (!response.ok) {
-                throw new Error(`HTTP_${response.status}`);
+                const result = await response.json();
+                if (!result?.success || !result?.session?.id) {
+                    throw new Error(result?.error?.code || 'INVALID_RESPONSE');
+                }
+
+                this.session = result.session;
+            } catch (error) {
+                console.error('[Race] Failed to start verified session', error);
+                this.session = null;
+                const lang = this.settingsManager.getLanguage();
+                this.showStatus(getTranslation(lang, 'game.sessionStartFailed'), 'error');
+            } finally {
+                this.sessionStartInProgress = false;
+                this.pendingSessionPromise = null;
             }
-
-            const result = await response.json();
-            if (!result?.success || !result?.session?.id) {
-                throw new Error(result?.error?.code || 'INVALID_RESPONSE');
-            }
-
-            this.session = result.session;
-        } catch (error) {
-            console.error('[Race] Failed to start verified session', error);
-            this.session = null;
-            const lang = this.settingsManager.getLanguage();
-            this.showStatus(getTranslation(lang, 'game.sessionStartFailed'), 'error');
-        } finally {
-            this.sessionStartInProgress = false;
-        }
+        })();
+        
+        await this.pendingSessionPromise;
     }
 
     async submitResult({ totalSeconds, totalSteps }) {

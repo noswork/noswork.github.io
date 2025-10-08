@@ -829,14 +829,14 @@ const initGame = async () => {
 };
 
 // 模块加载时立即输出日志
-console.log('[Module] Game module loaded');
+console.log('[Module] Game module loaded v9');
 
 // 使用DOMContentLoaded确保DOM已加载
 if (document.readyState === 'loading') {
-    console.log('[Module] Waiting for DOMContentLoaded...');
+    console.log('[Module] Waiting for DOMContentLoaded v9...');
     document.addEventListener('DOMContentLoaded', initGame);
 } else {
-    console.log('[Module] DOM already loaded, initializing immediately...');
+    console.log('[Module] DOM already loaded, initializing immediately v9...');
     // DOM已经加载完成，直接初始化
     initGame();
 }

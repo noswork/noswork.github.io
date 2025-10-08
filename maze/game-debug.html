@@ -132,7 +132,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="supabase-config.js?v=8" defer></script>
     <script src="supabase-client.js?v=8" defer></script>
-    <script type="module" src="scripts/game/index.js?v=8"></script>
+    <script type="module">
+        console.log('[ModuleLoader] Loading game module...');
+        import('./scripts/game/index.js?v=9')
+            .then(() => {
+                console.log('[ModuleLoader] Game module loaded successfully');
+            })
+            .catch((error) => {
+                console.error('[ModuleLoader] Failed to load game module:', error);
+            });
+    </script>
 </head>
 <body>
     <div class="game-container">

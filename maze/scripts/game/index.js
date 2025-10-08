@@ -172,8 +172,6 @@ class MazeGame {
         this.setupCanvas();
         this.generateMaze();
         this.inputManager.init();
-        this.renderer.setDevicePixelRatio(window.devicePixelRatio || 1);
-        this.renderer.render();
         this.uiManager.init();
         this.uiManager.translateUI();
         this.state.path.push({ x: this.state.player.x, y: this.state.player.y });
@@ -190,32 +188,24 @@ class MazeGame {
 
     setupCanvas() {
         const isMobile = window.innerWidth <= CANVAS_CONSTANTS.MOBILE_BREAKPOINT;
-        const availableWidth = Math.max(window.innerWidth - CANVAS_CONSTANTS.PADDING, this.state.gridSize);
-        const maxWidth = Math.min(availableWidth, CANVAS_CONSTANTS.MAX_WIDTH);
+        const maxWidth = Math.min(window.innerWidth - CANVAS_CONSTANTS.PADDING, CANVAS_CONSTANTS.MAX_WIDTH);
+        
+        // 計算可用高度 (考慮 Header、方向鍵等固定元素)
+        const verticalReserve = isMobile 
+            ? CANVAS_CONSTANTS.MOBILE_VERTICAL_RESERVE 
+            : CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
+        const maxHeight = Math.min(
+            window.innerHeight - verticalReserve, 
+            isMobile ? CANVAS_CONSTANTS.MOBILE_MAX_HEIGHT : CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT
+        );
+        const maxSize = Math.min(maxWidth, maxHeight);
 
-        // 桌面端仍根據高度限制畫面，手機端則優先以寬度為主，避免迷宮被壓縮成極小尺寸
-        let maxSize = maxWidth;
-        if (!isMobile) {
-            const verticalReserve = CANVAS_CONSTANTS.DESKTOP_VERTICAL_RESERVE;
-            const availableHeight = window.innerHeight - verticalReserve;
-            const cappedHeight = Math.min(availableHeight, CANVAS_CONSTANTS.DESKTOP_MAX_HEIGHT);
-            if (cappedHeight > 0) {
-                maxSize = Math.min(maxWidth, cappedHeight);
-            }
-        }
-
-        const cellSize = Math.max(1, Math.floor(maxSize / this.state.gridSize));
-        const canvasSize = Math.max(cellSize * this.state.gridSize, this.state.gridSize);
+        const cellSize = Math.floor(maxSize / this.state.gridSize);
+        const canvasSize = cellSize * this.state.gridSize;
 
         this.state.cellSize = cellSize;
-
-        const dpr = window.devicePixelRatio || 1;
-        const displaySize = canvasSize;
-        this.canvas.style.width = `${displaySize}px`;
-        this.canvas.style.height = `${displaySize}px`;
-        this.canvas.width = Math.max(1, Math.floor(displaySize * dpr));
-        this.canvas.height = Math.max(1, Math.floor(displaySize * dpr));
-        this.renderer.setDevicePixelRatio(dpr);
+        this.canvas.width = canvasSize;
+        this.canvas.height = canvasSize;
 
         // 處理手機端視窗高度變化
         if (isMobile) {

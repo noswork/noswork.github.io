@@ -6,16 +6,6 @@ export class MazeRenderer {
         this.ctx = canvas.getContext('2d');
         this.state = state;
         this.getTheme = getTheme;
-        this.dpr = window.devicePixelRatio || 1;
-    }
-
-    setDevicePixelRatio(dpr = 1) {
-        this.dpr = dpr;
-        if (!this.ctx) return;
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        if (dpr !== 1) {
-            this.ctx.scale(dpr, dpr);
-        }
     }
 
     render() {
@@ -24,13 +14,10 @@ export class MazeRenderer {
         const cellSize = this.state.cellSize;
         const themeColors = getThemeColors(this.getTheme());
         const ctx = this.ctx;
-        const canvasWidth = this.canvas.width / this.dpr;
-        const canvasHeight = this.canvas.height / this.dpr;
 
         // Always use theme background (white or theme color)
         ctx.fillStyle = themeColors.bg;
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         if (path.length > 1) {
             ctx.strokeStyle = themeColors.pathStroke;

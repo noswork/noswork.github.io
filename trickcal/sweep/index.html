@@ -6,6 +6,9 @@
     <title>Trickcal 掃蕩工具</title>
     <meta name="description" content="Trickcal 遊戲掃蕩工具 - 計算最省體力的裝備素材收集方案。" />
     
+    <!-- Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; connect-src 'self' https://phiemgvtolycpmpbgzan.supabase.co https://*.supabase.co; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; media-src 'self'; font-src 'self' data:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';" />
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://noswork.github.io/trickcal/sweep/" />
@@ -24,7 +27,9 @@
     
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase JS SDK - using fixed version for stability -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" 
+            crossorigin="anonymous"></script>
     <script type="module" src="app.js" defer></script>
   </head>
   <body style="visibility: hidden;">

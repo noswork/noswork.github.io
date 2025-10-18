@@ -4,6 +4,9 @@ const GEARS_PATH = "assets/gears";
 const PLACEHOLDER_IMG = "assets/gears/placeholder.svg";
 
 // Supabase configuration
+// Note: These credentials are public and safe to expose in frontend code.
+// Security is enforced through Row Level Security (RLS) policies in Supabase.
+// Ensure RLS is enabled for all tables to prevent unauthorized access.
 const SUPABASE_URL = "https://phiemgvtolycpmpbgzan.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaWVtZ3Z0b2x5Y3BtcGJnemFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NTQ5NDksImV4cCI6MjA3NjMzMDk0OX0.-nSfSQpKvD6Ye0GJ0BVJMamFWrHjqriQbXJ1n0T9Pas";
 
@@ -334,7 +337,10 @@ function renderMaterials() {
   const start = (catalogState.page - 1) * catalogState.pageSize;
   const pageItems = catalogState.filteredMaterials.slice(start, start + catalogState.pageSize);
 
-  refs.catalogGrid.innerHTML = "";
+  // Clear existing content safely
+  while (refs.catalogGrid.firstChild) {
+    refs.catalogGrid.removeChild(refs.catalogGrid.firstChild);
+  }
 
   for (const name of pageItems) {
     const card = document.createElement("button");
@@ -462,13 +468,26 @@ function updatePlan() {
   // 按關卡順序排序
   const sortedPlan = [...plan].sort((a, b) => stageComparator(a, b));
 
-  refs.stageList.innerHTML = "";
+  // Clear existing content safely
+  while (refs.stageList.firstChild) {
+    refs.stageList.removeChild(refs.stageList.firstChild);
+  }
+  
   for (const stage of sortedPlan) {
     const li = document.createElement("li");
 
     const header = document.createElement("div");
     header.className = "stage-header";
-    header.innerHTML = `<span>${stage}</span><span>${t("plan.energyPerStage").replace("{energy}", "10")}</span>`;
+    
+    // Create stage name span
+    const stageNameSpan = document.createElement("span");
+    stageNameSpan.textContent = stage;
+    header.appendChild(stageNameSpan);
+    
+    // Create energy info span
+    const energySpan = document.createElement("span");
+    energySpan.textContent = t("plan.energyPerStage").replace("{energy}", "10");
+    header.appendChild(energySpan);
 
     const materials = document.createElement("div");
     materials.className = "stage-materials";
@@ -567,8 +586,15 @@ function stageComparator(a, b) {
 function initSessionId() {
   let stored = localStorage.getItem(STORAGE_KEYS.sessionId);
   if (!stored) {
-    // Generate a unique session ID
-    stored = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    // Generate a unique session ID using crypto API for better security
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      stored = `session_${crypto.randomUUID()}`;
+    } else {
+      // Fallback for older browsers
+      const array = new Uint32Array(2);
+      crypto.getRandomValues(array);
+      stored = `session_${array[0]}_${array[1]}`;
+    }
     localStorage.setItem(STORAGE_KEYS.sessionId, stored);
   }
   sessionId = stored;

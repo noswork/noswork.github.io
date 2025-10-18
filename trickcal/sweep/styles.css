@@ -101,6 +101,78 @@ body[data-theme="dark"] nav.top-nav {
   font-weight: 600;
   font-size: 20px;
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.use-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(255, 95, 114, 0.15), rgba(255, 143, 159, 0.12));
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 95, 114, 0.2);
+  backdrop-filter: blur(8px);
+}
+
+body[data-theme="dark"] .use-counter {
+  background: linear-gradient(135deg, rgba(255, 143, 159, 0.2), rgba(255, 95, 114, 0.15));
+  color: var(--accent-dark);
+  border-color: rgba(255, 143, 159, 0.3);
+}
+
+.use-counter:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 95, 114, 0.2);
+}
+
+body[data-theme="dark"] .use-counter:hover {
+  box-shadow: 0 4px 12px rgba(255, 143, 159, 0.25);
+}
+
+.use-counter .counter-icon {
+  width: 18px;
+  height: 18px;
+  animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.use-counter .counter-value {
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: center;
+  letter-spacing: 0.5px;
+  transition: transform 0.2s ease;
+}
+
+.use-counter .counter-value.updating {
+  animation: counterPop 0.3s ease;
+}
+
+@keyframes counterPop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .nav-controls {

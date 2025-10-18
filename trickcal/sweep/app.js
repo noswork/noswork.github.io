@@ -3,6 +3,24 @@ const LANG_PATH = "assets/lang";
 const GEARS_PATH = "assets/gears";
 const PLACEHOLDER_IMG = "assets/gears/placeholder.svg";
 
+// Supabase configuration
+const SUPABASE_URL = "https://phiemgvtolycpmpbgzan.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoaWVtZ3Z0b2x5Y3BtcGJnemFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NTQ5NDksImV4cCI6MjA3NjMzMDk0OX0.-nSfSQpKvD6Ye0GJ0BVJMamFWrHjqriQbXJ1n0T9Pas";
+
+// Initialize Supabase client
+let supabase = null;
+
+// Session ID for tracking user usage (persisted in localStorage)
+let sessionId = null;
+
+// Local counter state
+let localCounterState = {
+  count: 0,           // Local counter
+  remoteCount: 0,     // Last known remote count
+  pendingEvents: [],  // Events waiting to be sent
+  syncTimer: null,    // Timer for periodic sync
+};
+
 // 根据材料名称生成图片路径
 function getMaterialImagePath(materialName) {
   return `${GEARS_PATH}/${materialName}.png`;
@@ -21,6 +39,9 @@ const STORAGE_KEYS = {
   theme: "trickcal-theme",
   lang: "trickcal-lang",
   selected: "trickcal-selected-materials",
+  sessionId: "trickcal-session-id",
+  localCounter: "trickcal-local-counter",
+  pendingEvents: "trickcal-pending-events",
 };
 
 const state = {
@@ -52,6 +73,7 @@ const refs = {
   modal: document.querySelector(".modal"),
   modalClose: document.querySelector(".modal-close"),
   tooltip: null, // 將在初始化時創建
+  counterValue: document.querySelector(".counter-value"),
 };
 
 const catalogState = {
@@ -61,6 +83,12 @@ const catalogState = {
 };
 
 async function init() {
+  // Initialize Supabase
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  // Initialize or get session ID
+  initSessionId();
+  
   // 立即應用主題，避免閃爍
   const storedTheme = localStorage.getItem(STORAGE_KEYS.theme);
   if (storedTheme === "dark" || storedTheme === "light") {
@@ -81,6 +109,9 @@ async function init() {
   bindEvents();
   renderMaterials();
   updatePlan();
+  
+  // Load and display usage counter
+  await loadUsageCounter();
 }
 
 function createTooltip() {
@@ -287,6 +318,7 @@ function bindEvents() {
     persistSelection();
     renderMaterials();
     updatePlan();
+    incrementUsageCounter('clear_selection');
   });
 }
 
@@ -392,6 +424,9 @@ function toggleMaterial(name) {
   persistSelection();
   renderMaterials();
   updatePlan();
+  
+  // Increment usage counter
+  incrementUsageCounter('material_toggle');
 }
 
 function persistSelection() {
@@ -524,6 +559,205 @@ function stageComparator(a, b) {
   const [bChapter, bStage] = b.split("-").map(Number);
   if (aChapter !== bChapter) return aChapter - bChapter;
   return aStage - bStage;
+}
+
+// ========== Usage Counter Functions ==========
+
+// Initialize or get session ID
+function initSessionId() {
+  let stored = localStorage.getItem(STORAGE_KEYS.sessionId);
+  if (!stored) {
+    // Generate a unique session ID
+    stored = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem(STORAGE_KEYS.sessionId, stored);
+  }
+  sessionId = stored;
+}
+
+// Load local counter state from localStorage
+function loadLocalCounterState() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.localCounter);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      localCounterState.count = parsed.count || 0;
+    }
+    
+    const storedEvents = localStorage.getItem(STORAGE_KEYS.pendingEvents);
+    if (storedEvents) {
+      localCounterState.pendingEvents = JSON.parse(storedEvents) || [];
+    }
+  } catch (err) {
+    console.error('Error loading local counter:', err);
+    localCounterState.count = 0;
+    localCounterState.pendingEvents = [];
+  }
+}
+
+// Save local counter state to localStorage
+function saveLocalCounterState() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.localCounter, JSON.stringify({
+      count: localCounterState.count
+    }));
+    localStorage.setItem(STORAGE_KEYS.pendingEvents, JSON.stringify(localCounterState.pendingEvents));
+  } catch (err) {
+    console.error('Error saving local counter:', err);
+  }
+}
+
+// Load and display the current total usage count
+async function loadUsageCounter() {
+  try {
+    // Load local state first
+    loadLocalCounterState();
+    
+    // Fetch remote count
+    const { data, error } = await supabase
+      .from('total_usage_count')
+      .select('total_count')
+      .single();
+    
+    if (error) {
+      console.error('Error loading usage counter:', error);
+      localCounterState.remoteCount = 0;
+    } else {
+      localCounterState.remoteCount = data.total_count || 0;
+    }
+    
+    // Display total (remote + local)
+    updateCounterDisplay();
+    
+    // Start periodic sync (every 1 minute)
+    startPeriodicSync();
+    
+    // Setup beforeunload handler to send pending events
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+  } catch (err) {
+    console.error('Error loading usage counter:', err);
+    refs.counterValue.textContent = '0';
+  }
+}
+
+// Update the counter display
+function updateCounterDisplay() {
+  const total = localCounterState.remoteCount + localCounterState.count;
+  refs.counterValue.textContent = formatNumber(total);
+}
+
+// Increment the local usage counter
+function incrementUsageCounter(actionType = 'interaction') {
+  // Increment local count
+  localCounterState.count++;
+  
+  // Add to pending events
+  localCounterState.pendingEvents.push({
+    action_type: actionType,
+    timestamp: Date.now()
+  });
+  
+  // Save to localStorage
+  saveLocalCounterState();
+  
+  // Update display with animation
+  refs.counterValue.classList.add('updating');
+  updateCounterDisplay();
+  
+  setTimeout(() => {
+    refs.counterValue.classList.remove('updating');
+  }, 300);
+}
+
+// Send pending events to Supabase
+async function syncPendingEvents() {
+  if (localCounterState.pendingEvents.length === 0) {
+    return;
+  }
+  
+  try {
+    console.log(`Syncing ${localCounterState.pendingEvents.length} pending events...`);
+    
+    // Prepare batch insert
+    const events = localCounterState.pendingEvents.map(event => ({
+      session_id: sessionId,
+      action_type: event.action_type,
+      created_at: new Date(event.timestamp).toISOString()
+    }));
+    
+    // Insert all events at once
+    const { error } = await supabase
+      .from('usage_events')
+      .insert(events);
+    
+    if (error) {
+      console.error('Error syncing events:', error);
+      return;
+    }
+    
+    // Update remote count
+    localCounterState.remoteCount += localCounterState.pendingEvents.length;
+    
+    // Clear pending events and local count
+    localCounterState.pendingEvents = [];
+    localCounterState.count = 0;
+    
+    // Save state
+    saveLocalCounterState();
+    
+    // Update display
+    updateCounterDisplay();
+    
+    console.log('Events synced successfully');
+    
+  } catch (err) {
+    console.error('Error syncing events:', err);
+  }
+}
+
+// Start periodic sync (every 1 minute)
+function startPeriodicSync() {
+  // Clear existing timer if any
+  if (localCounterState.syncTimer) {
+    clearInterval(localCounterState.syncTimer);
+  }
+  
+  // Sync every 60 seconds (1 minute)
+  localCounterState.syncTimer = setInterval(() => {
+    syncPendingEvents();
+  }, 60000);
+  
+  console.log('Periodic sync started (every 1 minute)');
+}
+
+// Handle page unload - send remaining events
+function handleBeforeUnload() {
+  if (localCounterState.pendingEvents.length > 0) {
+    // Use sendBeacon for reliable sending on page unload
+    const events = localCounterState.pendingEvents.map(event => ({
+      session_id: sessionId,
+      action_type: event.action_type,
+      created_at: new Date(event.timestamp).toISOString()
+    }));
+    
+    // Send using fetch with keepalive flag
+    fetch(`${SUPABASE_URL}/rest/v1/usage_events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(events),
+      keepalive: true
+    }).catch(err => console.error('Error sending final events:', err));
+  }
+}
+
+// Format number with thousands separator
+function formatNumber(num) {
+  return new Intl.NumberFormat('en-US').format(num);
 }
 
 window.addEventListener("DOMContentLoaded", init);

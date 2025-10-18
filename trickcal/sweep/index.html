@@ -24,6 +24,7 @@
     
     <link rel="icon" type="image/png" href="assets/favicon.png" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="app.js" defer></script>
   </head>
   <body style="visibility: hidden;">
@@ -31,7 +32,23 @@
       <source src="assets/background.mp4" type="video/mp4">
     </video>
     <nav class="top-nav">
-      <div class="brand" data-i18n="nav.title">Trickcal 掃蕩工具</div>
+      <div class="brand">
+        <span data-i18n="nav.title">Trickcal 掃蕩工具</span>
+        <div class="use-counter" title="全球總使用次數">
+          <svg class="counter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4"/>
+            <path d="M12 18v4"/>
+            <path d="m4.93 4.93 2.83 2.83"/>
+            <path d="m16.24 16.24 2.83 2.83"/>
+            <path d="M2 12h4"/>
+            <path d="M18 12h4"/>
+            <path d="m4.93 19.07 2.83-2.83"/>
+            <path d="m16.24 7.76 2.83-2.83"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <span class="counter-value">...</span>
+        </div>
+      </div>
       <div class="nav-controls">
         <button class="mode-toggle" type="button" aria-label="切換顯示模式">
           <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true">

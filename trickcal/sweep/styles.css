@@ -34,6 +34,15 @@ body[data-theme="dark"] .plan-warning {
 
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 優化觸控滾動 */
+.catalog-grid,
+.stage-list,
+.plan-details,
+.modal-body {
+  -webkit-overflow-scrolling: touch;
 }
 
 html,
@@ -65,6 +74,21 @@ body {
   transform: translate(-50%, -50%);
   z-index: -1;
   object-fit: cover;
+  will-change: auto;
+}
+
+/* 在移動設備上使用靜態背景 */
+@media (max-width: 768px) {
+  .background-video {
+    display: none;
+  }
+  
+  body {
+    background-image: var(--background-image);
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll; /* 在移動設備上使用scroll而不是fixed以提升性能 */
+  }
 }
 
 body[data-theme="dark"] {
@@ -324,10 +348,24 @@ main.layout {
   border-radius: var(--panel-radius);
   padding: 20px 24px;
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--border-color-light);
   background: var(--panel-bg-light);
   color: inherit;
   min-height: 0;
+}
+
+/* 在移動設備上減少模糊效果以提升性能 */
+@media (max-width: 768px) {
+  .panel {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  nav.top-nav {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
 }
 
 body[data-theme="dark"] .panel {
@@ -414,6 +452,9 @@ body[data-theme="dark"] .clear-selection:hover {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   aspect-ratio: 1;
   min-height: 0;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 body[data-theme="dark"] .catalog-card {
@@ -599,6 +640,9 @@ body[data-theme="dark"] .stage-list li {
   cursor: var(--cursor-pointer);
   transition: background 0.2s ease, transform 0.2s ease;
   position: relative;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .stage-materials .material-chip:hover {
@@ -793,28 +837,223 @@ body[data-theme="dark"] .discord-link:hover {
   font-size: 12px;
 }
 
-@media (max-width: 768px) {
+/* 平板設備優化 */
+@media (max-width: 1024px) {
+  :root {
+    --nav-height: 56px;
+  }
+
   nav.top-nav {
-    padding: 0 16px;
+    padding: 0 20px;
+  }
+
+  .top-nav .brand {
+    font-size: 18px;
     gap: 12px;
   }
 
-  .nav-controls {
-    gap: 12px;
+  .use-counter {
+    font-size: 13px;
+    padding: 5px 12px;
+    gap: 6px;
+  }
+
+  .use-counter .counter-icon {
+    width: 16px;
+    height: 16px;
   }
 
   main.layout {
-    padding: 16px;
-    gap: 16px;
+    padding: 20px;
+    gap: 20px;
   }
 
   .catalog-panel .catalog-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: min-content;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
   }
 
+  .catalog-card img {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+/* 手機設備優化 */
+@media (max-width: 768px) {
+  :root {
+    --nav-height: auto;
+    --panel-radius: 16px;
+  }
+
+  nav.top-nav {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 56px;
+  }
+
+  .top-nav .brand {
+    font-size: 16px;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .top-nav .brand > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 移動端隱藏使用計數器或調整樣式 */
+  .use-counter {
+    font-size: 11px;
+    padding: 4px 10px;
+    gap: 5px;
+  }
+
+  .use-counter .counter-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .use-counter .counter-value {
+    min-width: 30px;
+    font-size: 11px;
+  }
+
+  .nav-controls {
+    gap: 10px;
+  }
+
+  .mode-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mode-toggle .icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .language-toggle {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+
+  main.layout {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: var(--panel-radius);
+  }
+
+  .panel > header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .clear-selection {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .catalog-controls {
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .catalog-panel .catalog-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .catalog-card {
+    padding: 8px;
+    border-radius: 14px;
+    border-width: 2px;
+  }
+
+  .catalog-card img {
+    width: 64px;
+    height: 64px;
+  }
+
+  /* 增大觸控區域 */
+  .catalog-nav {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    touch-action: manipulation;
+  }
+
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .search-row input[type="search"] {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px; /* 防止iOS自動縮放 */
+  }
+
+  .plan-summary {
+    font-size: 15px;
+  }
+
+  .stage-list li {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .stage-materials {
+    gap: 8px;
+  }
+
+  .stage-materials .material-chip {
+    padding: 6px;
+  }
+
+  .stage-materials .material-chip img {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* 模態框優化 */
+  .modal-content {
+    width: 95vw;
+    max-height: 85vh;
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .modal-content header h3 {
+    font-size: 16px;
+  }
+
+  .modal-close {
+    font-size: 24px;
+    padding: 4px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  /* Footer優化 */
   .site-footer {
-    padding: 10px 16px;
+    padding: 12px 16px;
   }
 
   .footer-content {
@@ -826,6 +1065,86 @@ body[data-theme="dark"] .discord-link:hover {
   .footer-main {
     width: 100%;
     justify-content: center;
+    font-size: 11px;
+  }
+
+  .footer-text,
+  .footer-license,
+  .footer-copyright-inline {
+    font-size: 11px;
+  }
+
+  .discord-link {
+    font-size: 11px;
+  }
+
+  /* 移除tooltip在移動設備上 */
+  .material-tooltip {
+    display: none !important;
+  }
+}
+
+/* 小手機優化 */
+@media (max-width: 480px) {
+  .top-nav .brand {
+    font-size: 14px;
+  }
+
+  .use-counter {
+    display: none; /* 在小屏幕上隱藏計數器 */
+  }
+
+  .catalog-panel .catalog-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .catalog-card {
+    padding: 6px;
+  }
+
+  .catalog-card img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .page-indicator {
+    font-size: 13px;
+  }
+}
+
+/* 橫屏模式優化 */
+@media (max-width: 768px) and (orientation: landscape) {
+  nav.top-nav {
+    padding: 8px 16px;
+    min-height: 48px;
+  }
+
+  .top-nav .brand {
+    font-size: 14px;
+  }
+
+  main.layout {
+    grid-template-columns: 1fr 1fr;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .catalog-panel .catalog-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+/* 減少動畫在低性能設備上 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .use-counter .counter-icon {
+    animation: none !important;
   }
 }
 

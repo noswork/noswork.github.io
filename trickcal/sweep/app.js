@@ -102,8 +102,13 @@ async function init() {
   // 顯示頁面
   document.body.style.visibility = "visible";
   
-  // 創建 tooltip 元素
-  createTooltip();
+  // 檢測移動設備並優化背景視頻
+  optimizeBackgroundVideo();
+  
+  // 創建 tooltip 元素（僅在非觸控設備）
+  if (!isTouchDevice()) {
+    createTooltip();
+  }
   
   await loadData();
   hydrateStages();
@@ -115,6 +120,32 @@ async function init() {
   
   // Load and display usage counter
   await loadUsageCounter();
+}
+
+// 檢測是否為觸控設備
+function isTouchDevice() {
+  return ('ontouchstart' in window) || 
+         (navigator.maxTouchPoints > 0) || 
+         (navigator.msMaxTouchPoints > 0);
+}
+
+// 優化背景視頻性能
+function optimizeBackgroundVideo() {
+  const video = document.querySelector('.background-video');
+  if (!video) return;
+  
+  // 在移動設備上禁用背景視頻以節省性能和數據
+  if (isTouchDevice() || window.innerWidth <= 768) {
+    video.style.display = 'none';
+    // 使用靜態背景圖片替代
+    document.body.style.backgroundImage = 'var(--background-image)';
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundAttachment = 'fixed';
+  } else {
+    // 桌面設備上保持視頻
+    video.load();
+  }
 }
 
 function createTooltip() {
@@ -350,6 +381,10 @@ function renderMaterials() {
     card.setAttribute("data-selected", state.selectedMaterials.has(name));
 
     const img = document.createElement("img");
+    // 使用懶加載圖片
+    if ('loading' in HTMLImageElement.prototype) {
+      img.loading = 'lazy';
+    }
     img.src = getMaterialImagePath(name);
     img.alt = getMaterialName(name);
     // 如果图片加载失败，使用占位符
@@ -364,24 +399,44 @@ function renderMaterials() {
     card.appendChild(label);
     card.addEventListener("click", () => toggleMaterial(name));
     
-    // 添加 tooltip 事件
-    card.addEventListener("mouseenter", (e) => {
-      const rect = e.target.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top;
-      showTooltip(getMaterialName(name), x, y);
-    });
-    
-    card.addEventListener("mousemove", (e) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top;
-      showTooltip(getMaterialName(name), x, y);
-    });
-    
-    card.addEventListener("mouseleave", () => {
-      hideTooltip();
-    });
+    // 只在非觸控設備上添加 tooltip 事件
+    if (!isTouchDevice() && refs.tooltip) {
+      card.addEventListener("mouseenter", (e) => {
+        const rect = e.target.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top;
+        showTooltip(getMaterialName(name), x, y);
+      });
+      
+      card.addEventListener("mousemove", (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top;
+        showTooltip(getMaterialName(name), x, y);
+      });
+      
+      card.addEventListener("mouseleave", () => {
+        hideTooltip();
+      });
+    } else {
+      // 觸控設備：添加長按顯示名稱的功能
+      let touchTimer;
+      card.addEventListener("touchstart", (e) => {
+        touchTimer = setTimeout(() => {
+          // 可以使用原生alert或toast顯示名稱
+          // 這裡使用簡單的方式在卡片上顯示文字
+          card.setAttribute('title', getMaterialName(name));
+        }, 500);
+      });
+      
+      card.addEventListener("touchend", () => {
+        if (touchTimer) clearTimeout(touchTimer);
+      });
+      
+      card.addEventListener("touchcancel", () => {
+        if (touchTimer) clearTimeout(touchTimer);
+      });
+    }
 
     refs.catalogGrid.appendChild(card);
   }
@@ -499,6 +554,10 @@ function updatePlan() {
       chip.className = "material-chip";
       
       const chipImg = document.createElement("img");
+      // 使用懶加載圖片
+      if ('loading' in HTMLImageElement.prototype) {
+        chipImg.loading = 'lazy';
+      }
       chipImg.src = getMaterialImagePath(material);
       chipImg.alt = getMaterialName(material);
       // 如果图片加载失败，使用占位符
@@ -515,24 +574,26 @@ function updatePlan() {
         toggleMaterial(material);
       });
       
-      // 添加 tooltip 事件
-      chip.addEventListener("mouseenter", (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top;
-        showTooltip(getMaterialName(material), x, y);
-      });
-      
-      chip.addEventListener("mousemove", (e) => {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = rect.left + rect.width / 2;
-        const y = rect.top;
-        showTooltip(getMaterialName(material), x, y);
-      });
-      
-      chip.addEventListener("mouseleave", () => {
-        hideTooltip();
-      });
+      // 只在非觸控設備上添加 tooltip 事件
+      if (!isTouchDevice() && refs.tooltip) {
+        chip.addEventListener("mouseenter", (e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top;
+          showTooltip(getMaterialName(material), x, y);
+        });
+        
+        chip.addEventListener("mousemove", (e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = rect.left + rect.width / 2;
+          const y = rect.top;
+          showTooltip(getMaterialName(material), x, y);
+        });
+        
+        chip.addEventListener("mouseleave", () => {
+          hideTooltip();
+        });
+      }
       
       materials.appendChild(chip);
     }

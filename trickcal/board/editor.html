@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>開發者編輯器 - Trickcal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #161b33;
+            --bg-tertiary: #1e2640;
+            --bg-card: #252d4d;
+            --text-primary: #f0f4f8;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: rgba(22, 27, 51, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 1.25rem 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.625rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group textarea {
+            font-family: 'Courier New', monospace;
+            min-height: 200px;
+        }
+
+        .character-list {
+            margin-top: 1.5rem;
+        }
+
+        .character-item {
+            background: var(--bg-tertiary);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s;
+        }
+
+        .character-item:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+
+        .character-item-avatar {
+            flex-shrink: 0;
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        }
+
+        .character-item-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .character-item-fallback {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .character-info {
+            flex: 1;
+        }
+
+        .character-info h3 {
+            margin-bottom: 0.5rem;
+            font-size: 1.125rem;
+        }
+
+        .character-info p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .character-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .layer-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+        }
+
+        .layer-section h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 2.5rem;
+            border-radius: 24px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .back-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.625rem 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .image-upload-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .image-preview {
+            flex-shrink: 0;
+            width: 200px;
+            height: 200px;
+            border-radius: 16px;
+            border: 2px dashed var(--border-color);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-card);
+        }
+
+        .image-preview:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .image-preview-placeholder span {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .image-preview-placeholder p {
+            margin: 0.5rem 0;
+            font-weight: 600;
+        }
+
+        .image-preview-placeholder small {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .image-upload-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .image-upload-controls .btn {
+            width: fit-content;
+        }
+
+        .image-hint {
+            margin: 0.5rem 0 0 0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .image-hint code {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            color: var(--accent-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛠️ 開發者編輯器</h1>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="language-selector-container"></div>
+            <a href="home.html" class="back-btn">← 返回主頁</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="characters">角色管理</button>
+            <button class="tab-btn" data-tab="config">配置管理</button>
+            <button class="tab-btn" data-tab="importExport">導入/導出</button>
+        </div>
+
+        <!-- 角色管理 -->
+        <div class="tab-content active" id="charactersTab">
+            <h2>角色管理</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">新增、編輯或刪除角色數據</p>
+            
+            <button class="btn btn-primary" id="addCharacterBtn">➕ 新增角色</button>
+            
+            <div class="character-list" id="characterList"></div>
+        </div>
+
+        <!-- 配置管理 -->
+        <div class="tab-content" id="configTab">
+            <h2>配置管理</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">管理系統配置選項</p>
+            
+            <div class="form-group">
+                <label>性格列表 (逗號分隔):</label>
+                <input type="text" id="personalitiesInput" placeholder="天真,冷靜,狂亂,活潑,憂鬱">
+            </div>
+            
+            <div class="form-group">
+                <label>種族列表 (逗號分隔):</label>
+                <input type="text" id="racesInput" placeholder="龍族,精靈,妖精,獸人,幽靈,魔靈,魔女">
+            </div>
+            
+            <div class="form-group">
+                <label>攻擊類型 (逗號分隔):</label>
+                <input type="text" id="attackTypesInput" placeholder="魔法,物理">
+            </div>
+            
+            <div class="form-group">
+                <label>部署列 (逗號分隔):</label>
+                <input type="text" id="deployRowsInput" placeholder="前排,中排,後排">
+            </div>
+            
+            <div class="form-group">
+                <label>職業類型 (逗號分隔):</label>
+                <input type="text" id="rolesInput" placeholder="輸出,肉盾,輔助">
+            </div>
+            
+            <button class="btn btn-success" id="saveConfigBtn">💾 保存配置</button>
+        </div>
+
+        <!-- 導入/導出 -->
+        <div class="tab-content" id="importExportTab">
+            <h2>數據導入/導出</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">備份或恢復數據</p>
+            
+            <div class="actions">
+                <button class="btn btn-primary" id="exportDataBtn">📥 導出數據</button>
+                <button class="btn btn-secondary" id="importDataBtn">📤 導入數據</button>
+                <button class="btn btn-danger" id="clearDataBtn">🗑️ 清除所有數據</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 2rem;">
+                <label>JSON 數據預覽:</label>
+                <textarea id="jsonPreview" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- 角色編輯模態框 -->
+    <div class="modal" id="characterModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">新增角色</h2>
+            <form id="characterForm">
+                <div class="form-group">
+                    <label>角色名稱（中文）:</label>
+                    <input type="text" id="charName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>角色名稱（英文）:</label>
+                    <input type="text" id="charNameEn" required placeholder="例如: Yumi">
+                </div>
+                
+                <div class="form-group">
+                    <label>角色圖片:</label>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="imagePreview">
+                            <div class="image-preview-placeholder">
+                                <span>📷</span>
+                                <p>點擊上傳圖片</p>
+                                <small>建議尺寸: 200x200 px</small>
+                            </div>
+                        </div>
+                        <div class="image-upload-controls">
+                            <input type="file" id="charImageInput" accept="image/png,image/jpeg,image/jpg,image/webp" style="display: none;">
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-secondary btn-small" id="uploadImageBtn">📁 選擇圖片</button>
+                                <button type="button" class="btn btn-danger btn-small" id="removeImageBtn" style="display: none;">🗑️ 移除圖片</button>
+                            </div>
+                            <p class="image-hint">
+                                圖片檔名: <code id="imageFilename">角色名稱.png</code><br>
+                                <small>💡 提示：儲存角色後，圖片會自動下載，請將檔案放入 <code>assets/characters/</code> 資料夾</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>性格:</label>
+                    <select id="charPersonality" required></select>
+                </div>
+                <div class="form-group">
+                    <label>星級:</label>
+                    <select id="charStars" required>
+                        <option value="1">一星</option>
+                        <option value="2">二星</option>
+                        <option value="3">三星</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>攻擊類型:</label>
+                    <select id="charAttackType" required></select>
+                </div>
+                <div class="form-group">
+                    <label>部署列:</label>
+                    <select id="charDeployRow" required></select>
+                </div>
+                <div class="form-group">
+                    <label>職業類型:</label>
+                    <select id="charRole" required></select>
+                </div>
+                <div class="form-group">
+                    <label>種族:</label>
+                    <select id="charRace" required></select>
+                </div>
+                
+                <h3 style="margin: 2rem 0 1rem;">格子配置</h3>
+                
+                <div class="layer-section">
+                    <h3>第一層</h3>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" class="board-check" data-layer="layer1" data-type="attack"> ⚔️ 攻擊力</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer1" data-type="crit"> ✨ 暴擊</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer1" data-type="hp"> ❤️ HP</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer1" data-type="critResist"> 🔵 暴擊抵抗</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer1" data-type="defense"> 🛡️ 防禦力</label>
+                    </div>
+                </div>
+
+                <div class="layer-section">
+                    <h3>第二層</h3>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" class="board-check" data-layer="layer2" data-type="attack"> ⚔️ 攻擊力</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer2" data-type="crit"> ✨ 暴擊</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer2" data-type="hp"> ❤️ HP</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer2" data-type="critResist"> 🔵 暴擊抵抗</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer2" data-type="defense"> 🛡️ 防禦力</label>
+                    </div>
+                </div>
+
+                <div class="layer-section">
+                    <h3>第三層</h3>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" class="board-check" data-layer="layer3" data-type="attack"> ⚔️ 攻擊力</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer3" data-type="crit"> ✨ 暴擊</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer3" data-type="hp"> ❤️ HP</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer3" data-type="critResist"> 🔵 暴擊抵抗</label>
+                        <label><input type="checkbox" class="board-check" data-layer="layer3" data-type="defense"> 🛡️ 防禦力</label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" id="cancelCharBtn">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <input type="file" id="importFileInput" accept=".json" style="display: none;">
+
+    <script src="i18n.js"></script>
+    <script src="editor.js"></script>
+    <script>
+        // 初始化語言系統
+        document.addEventListener('DOMContentLoaded', async () => {
+            await i18n.init();
+        });
+    </script>
+</body>
+</html>
+

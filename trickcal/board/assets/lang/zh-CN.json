@@ -1,0 +1,182 @@
+{
+  "pageTitle": "金蜡笔记录本 - Trickcal",
+  "nav": {
+    "title": "金蜡笔记录本",
+    "back": "返回",
+    "settings": "设置",
+    "theme": "切换主题",
+    "language": "简体中文"
+  },
+  "layers": {
+    "layer1": "第一层",
+    "layer2": "第二层",
+    "layer3": "第三层"
+  },
+  "cellTypes": {
+    "attack": "攻击力",
+    "crit": "暴击",
+    "hp": "HP",
+    "critResist": "暴击抵抗",
+    "defense": "防御力"
+  },
+  "panel": {
+    "layerSummary": "层级总览",
+    "activated": "已启动",
+    "totalBonus": "层级总加成",
+    "ownershipStats": "角色拥有概况",
+    "ownedCharacters": "已拥有角色",
+    "ownershipRate": "拥有率",
+    "activatedCells": "已启动格子",
+    "cellCompletionRate": "格子完成率",
+    "resourceSummary": "资源需求",
+    "currentLayerNeed": "当前层级需求",
+    "allLayersNeed": "全部层级需求",
+    "currentLayerBonus": "当前层级总加成",
+    "allLayersBonus": "全部层级总加成"
+  },
+  "settings": {
+    "title": "角色设置",
+    "description": "点击角色图片设定为已拥有/未拥有",
+    "resetAll": "重置全部",
+    "close": "关闭",
+    "confirmReset": "确定要重置所有进度吗？",
+    "sortBy": "排序方式：",
+    "sortDefault": "预设顺序",
+    "sortStars": "星级",
+    "sortRole": "类型",
+    "sortPersonality": "性格",
+    "sortAttackType": "攻击类型",
+    "sortDeployRow": "部署列",
+    "sortRace": "种族",
+    "sortOrderAsc": "升序",
+    "sortOrderDesc": "降序"
+  },
+  "footer": {
+    "costPerCell": "每格消耗：",
+    "bonusPerCell": "每格加成：",
+    "totalBonus": "总加成:",
+    "crayonsNeeded": "还需金蜡笔:",
+    "noCellsYet": "此格子尚无角色"
+  },
+  "home": {
+    "title": "Trickcal 工具集",
+    "subtitle": "金蜡笔记录本与实用工具",
+    "boardTool": {
+      "title": "金蜡笔记录本",
+      "description": "追踪角色拥有状态、记录着色版格子点亮进度、计算属性加成。",
+      "badge": "主要工具"
+    },
+    "bulkGenerator": {
+      "title": "批量数据生成器",
+      "description": "使用 CSV 格式快速批量创建角色数据，支持一键转换和导出。",
+      "badge": "辅助工具"
+    },
+    "editor": {
+      "title": "开发者编辑器",
+      "description": "管理角色数据、配置系统选项、导入/导出数据备份。",
+      "badge": "开发工具"
+    },
+    "resources": "文档与资源",
+    "quickStart": "开始使用",
+    "readme": "完整说明",
+    "overview": "项目总览",
+    "testReport": "测试报告",
+    "example": "角色范例",
+    "assets": "资源文件夹",
+    "version": "版本",
+    "lastUpdate": "最后更新"
+  },
+  "editor": {
+    "title": "开发者编辑器",
+    "backToHome": "返回主页",
+    "tabs": {
+      "characters": "角色管理",
+      "config": "配置管理",
+      "importExport": "导入/导出"
+    },
+    "characters": {
+      "title": "角色管理",
+      "description": "新增、编辑或删除角色数据",
+      "addCharacter": "新增角色",
+      "edit": "编辑",
+      "delete": "删除"
+    },
+    "config": {
+      "title": "配置管理",
+      "description": "管理系统配置选项",
+      "personalities": "性格列表 (逗号分隔):",
+      "races": "种族列表 (逗号分隔):",
+      "attackTypes": "攻击类型 (逗号分隔):",
+      "deployRows": "部署列 (逗号分隔):",
+      "roles": "职业类型 (逗号分隔):",
+      "saveConfig": "保存配置"
+    },
+    "importExport": {
+      "title": "数据导入/导出",
+      "description": "备份或恢复数据",
+      "exportData": "导出数据",
+      "importData": "导入数据",
+      "clearData": "清除所有数据",
+      "jsonPreview": "JSON 数据预览:"
+    },
+    "form": {
+      "addCharacter": "新增角色",
+      "editCharacter": "编辑角色",
+      "characterName": "角色名称:",
+      "characterImage": "角色图片:",
+      "personality": "性格:",
+      "stars": "星级:",
+      "attackType": "攻击类型:",
+      "deployRow": "部署列:",
+      "role": "职业类型:",
+      "race": "种族:",
+      "boardConfig": "格子配置",
+      "uploadImage": "选择图片",
+      "removeImage": "移除图片",
+      "clickToUpload": "点击上传图片",
+      "recommendedSize": "建议尺寸: 200x200 px",
+      "imageFilename": "图片档名:",
+      "imageHint": "提示：储存角色后，图片会自动下载，请将档案放入 assets/characters/ 资料夹",
+      "cancel": "取消",
+      "save": "保存"
+    }
+  },
+  "bulkGenerator": {
+    "title": "批量角色数据生成器",
+    "description": "这个工具可以帮助您快速批量生成角色数据。您可以使用 CSV 格式输入角色资讯，工具会自动转换成 JSON 格式，可直接导入到金蜡笔记录本中。",
+    "tip": "提示：",
+    "tipText": "请按照示范格式输入数据。每行代表一个角色，栏位之间用逗号分隔。",
+    "inputCSV": "输入 CSV 数据",
+    "formatDesc": "格式说明：",
+    "cellCodes": "格子代码：",
+    "convert": "转换为 JSON",
+    "loadExample": "载入范例",
+    "clear": "清空",
+    "convertSuccess": "✓ 转换成功！",
+    "jsonOutput": "JSON 输出",
+    "copyToClipboard": "复制到剪贴板",
+    "downloadJSON": "下载 JSON 文件",
+    "usage": "使用说明",
+    "step1": "按照格式在上方输入框填写角色数据",
+    "step2": "点击「转换为 JSON」按钮",
+    "step3": "复制或下载生成的 JSON 数据",
+    "step4": "在金蜡笔记录本中点击「导入数据」",
+    "step5": "选择下载的 JSON 文件或直接贴上数据",
+    "totalCharacters": "总角色数",
+    "avgStars": "平均星级",
+    "mostCommonRace": "最多种族"
+  },
+  "common": {
+    "confirm": "确定",
+    "cancel": "取消",
+    "yes": "是",
+    "no": "否",
+    "save": "保存",
+    "close": "关闭"
+  },
+  "errors": {
+    "noData": "无数据可显示",
+    "noCellType": "无此格子类型"
+  }
+}
+

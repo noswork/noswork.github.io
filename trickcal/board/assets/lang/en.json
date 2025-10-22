@@ -1,0 +1,182 @@
+{
+  "pageTitle": "Crayon Tracker - Trickcal",
+  "nav": {
+    "title": "Crayon Tracker",
+    "back": "Back",
+    "settings": "Settings",
+    "theme": "Toggle Theme",
+    "language": "English"
+  },
+  "layers": {
+    "layer1": "Layer 1",
+    "layer2": "Layer 2",
+    "layer3": "Layer 3"
+  },
+  "cellTypes": {
+    "attack": "Attack",
+    "crit": "Critical",
+    "hp": "HP",
+    "critResist": "Crit Resist",
+    "defense": "Defense"
+  },
+  "panel": {
+    "layerSummary": "Layer Summary",
+    "activated": "Activated",
+    "totalBonus": "Total Layer Bonus",
+    "ownershipStats": "Character Ownership",
+    "ownedCharacters": "Owned Characters",
+    "ownershipRate": "Ownership Rate",
+    "activatedCells": "Activated Cells",
+    "cellCompletionRate": "Cell Completion",
+    "resourceSummary": "Resource Requirements",
+    "currentLayerNeed": "Current Layer Needs",
+    "allLayersNeed": "All Layers Needs",
+    "currentLayerBonus": "Current Layer Bonus",
+    "allLayersBonus": "All Layers Bonus"
+  },
+  "settings": {
+    "title": "Character Settings",
+    "description": "Click character icons to toggle ownership status",
+    "resetAll": "Reset All",
+    "close": "Close",
+    "confirmReset": "Are you sure you want to reset all progress?",
+    "sortBy": "Sort By:",
+    "sortDefault": "Default Order",
+    "sortStars": "Stars",
+    "sortRole": "Role",
+    "sortPersonality": "Personality",
+    "sortAttackType": "Attack Type",
+    "sortDeployRow": "Deploy Row",
+    "sortRace": "Race",
+    "sortOrderAsc": "Ascending",
+    "sortOrderDesc": "Descending"
+  },
+  "footer": {
+    "costPerCell": "Cost per cell:",
+    "bonusPerCell": "Bonus per cell:",
+    "totalBonus": "Total Bonus:",
+    "crayonsNeeded": "Crayons needed:",
+    "noCellsYet": "No characters for this cell yet"
+  },
+  "home": {
+    "title": "Trickcal Tools",
+    "subtitle": "Golden Crayon Tracker & Utilities",
+    "boardTool": {
+      "title": "Golden Crayon Tracker",
+      "description": "Track character ownership, record board cell progress, and calculate stat bonuses.",
+      "badge": "Main Tool"
+    },
+    "bulkGenerator": {
+      "title": "Bulk Data Generator",
+      "description": "Quickly create character data in bulk using CSV format with one-click conversion and export.",
+      "badge": "Helper Tool"
+    },
+    "editor": {
+      "title": "Developer Editor",
+      "description": "Manage character data, configure system options, and import/export data backups.",
+      "badge": "Dev Tool"
+    },
+    "resources": "Documentation & Resources",
+    "quickStart": "Quick Start",
+    "readme": "Full Guide",
+    "overview": "Project Overview",
+    "testReport": "Test Report",
+    "example": "Character Example",
+    "assets": "Asset Folder",
+    "version": "Version",
+    "lastUpdate": "Last Updated"
+  },
+  "editor": {
+    "title": "Developer Editor",
+    "backToHome": "Back to Home",
+    "tabs": {
+      "characters": "Character Management",
+      "config": "Configuration",
+      "importExport": "Import/Export"
+    },
+    "characters": {
+      "title": "Character Management",
+      "description": "Add, edit, or delete character data",
+      "addCharacter": "Add Character",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "config": {
+      "title": "Configuration Management",
+      "description": "Manage system configuration options",
+      "personalities": "Personality List (comma separated):",
+      "races": "Race List (comma separated):",
+      "attackTypes": "Attack Types (comma separated):",
+      "deployRows": "Deploy Rows (comma separated):",
+      "roles": "Role Types (comma separated):",
+      "saveConfig": "Save Config"
+    },
+    "importExport": {
+      "title": "Data Import/Export",
+      "description": "Backup or restore data",
+      "exportData": "Export Data",
+      "importData": "Import Data",
+      "clearData": "Clear All Data",
+      "jsonPreview": "JSON Data Preview:"
+    },
+    "form": {
+      "addCharacter": "Add Character",
+      "editCharacter": "Edit Character",
+      "characterName": "Character Name:",
+      "characterImage": "Character Image:",
+      "personality": "Personality:",
+      "stars": "Stars:",
+      "attackType": "Attack Type:",
+      "deployRow": "Deploy Row:",
+      "role": "Role:",
+      "race": "Race:",
+      "boardConfig": "Board Configuration",
+      "uploadImage": "Choose Image",
+      "removeImage": "Remove Image",
+      "clickToUpload": "Click to upload image",
+      "recommendedSize": "Recommended size: 200x200 px",
+      "imageFilename": "Image filename:",
+      "imageHint": "Tip: After saving, the image will auto-download. Place the file in assets/characters/ folder",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "bulkGenerator": {
+    "title": "Bulk Character Data Generator",
+    "description": "This tool helps you quickly generate character data in bulk. You can input character information in CSV format, and the tool will automatically convert it to JSON format for direct import into the Golden Crayon Tracker.",
+    "tip": "Tip:",
+    "tipText": "Please follow the example format to input data. Each line represents one character, with fields separated by commas.",
+    "inputCSV": "Input CSV Data",
+    "formatDesc": "Format Description:",
+    "cellCodes": "Cell Codes:",
+    "convert": "Convert to JSON",
+    "loadExample": "Load Example",
+    "clear": "Clear",
+    "convertSuccess": "✓ Conversion successful!",
+    "jsonOutput": "JSON Output",
+    "copyToClipboard": "Copy to Clipboard",
+    "downloadJSON": "Download JSON File",
+    "usage": "Usage Instructions",
+    "step1": "Fill in character data in the input field following the format",
+    "step2": "Click the 'Convert to JSON' button",
+    "step3": "Copy or download the generated JSON data",
+    "step4": "Click 'Import Data' in the Golden Crayon Tracker",
+    "step5": "Select the downloaded JSON file or paste the data directly",
+    "totalCharacters": "Total Characters",
+    "avgStars": "Average Stars",
+    "mostCommonRace": "Most Common Race"
+  },
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No",
+    "save": "Save",
+    "close": "Close"
+  },
+  "errors": {
+    "noData": "No data to display",
+    "noCellType": "Invalid cell type"
+  }
+}
+

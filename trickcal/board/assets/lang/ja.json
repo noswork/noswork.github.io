@@ -1,0 +1,182 @@
+{
+  "pageTitle": "ゴールデンクレヨン記録 - Trickcal",
+  "nav": {
+    "title": "ゴールデンクレヨン記録",
+    "back": "戻る",
+    "settings": "設定",
+    "theme": "テーマ切替",
+    "language": "日本語"
+  },
+  "layers": {
+    "layer1": "第一層",
+    "layer2": "第二層",
+    "layer3": "第三層"
+  },
+  "cellTypes": {
+    "attack": "攻撃力",
+    "crit": "クリティカル",
+    "hp": "HP",
+    "critResist": "クリティカル抵抗",
+    "defense": "防御力"
+  },
+  "panel": {
+    "layerSummary": "レイヤー概要",
+    "activated": "有効化済み",
+    "totalBonus": "レイヤー合計ボーナス",
+    "ownershipStats": "キャラクター所有状況",
+    "ownedCharacters": "所有キャラクター",
+    "ownershipRate": "所有率",
+    "activatedCells": "有効化セル",
+    "cellCompletionRate": "セル完成率",
+    "resourceSummary": "必要リソース",
+    "currentLayerNeed": "現在レイヤー必要数",
+    "allLayersNeed": "全レイヤー必要数",
+    "currentLayerBonus": "現在レイヤーボーナス",
+    "allLayersBonus": "全レイヤーボーナス"
+  },
+  "settings": {
+    "title": "キャラクター設定",
+    "description": "キャラクター画像をクリックして所有状態を切り替え",
+    "resetAll": "全てリセット",
+    "close": "閉じる",
+    "confirmReset": "全ての進行状況をリセットしますか？",
+    "sortBy": "並び替え：",
+    "sortDefault": "デフォルト順",
+    "sortStars": "星",
+    "sortRole": "役割",
+    "sortPersonality": "性格",
+    "sortAttackType": "攻撃タイプ",
+    "sortDeployRow": "配置列",
+    "sortRace": "種族",
+    "sortOrderAsc": "昇順",
+    "sortOrderDesc": "降順"
+  },
+  "footer": {
+    "costPerCell": "セルごとのコスト：",
+    "bonusPerCell": "セルごとのボーナス：",
+    "totalBonus": "合計ボーナス：",
+    "crayonsNeeded": "必要なクレヨン：",
+    "noCellsYet": "このセルにはまだキャラクターがいません"
+  },
+  "home": {
+    "title": "Trickcal ツール集",
+    "subtitle": "ゴールデンクレヨン記録＆ユーティリティ",
+    "boardTool": {
+      "title": "ゴールデンクレヨン記録",
+      "description": "キャラクターの所有状況を追跡し、ボードセルの進行状況を記録し、ステータスボーナスを計算します。",
+      "badge": "メインツール"
+    },
+    "bulkGenerator": {
+      "title": "一括データジェネレーター",
+      "description": "CSV形式を使用してキャラクターデータを一括作成し、ワンクリックで変換およびエクスポートできます。",
+      "badge": "補助ツール"
+    },
+    "editor": {
+      "title": "開発者エディター",
+      "description": "キャラクターデータの管理、システムオプションの設定、データバックアップのインポート/エクスポート。",
+      "badge": "開発ツール"
+    },
+    "resources": "ドキュメントとリソース",
+    "quickStart": "クイックスタート",
+    "readme": "完全ガイド",
+    "overview": "プロジェクト概要",
+    "testReport": "テストレポート",
+    "example": "キャラクター例",
+    "assets": "アセットフォルダ",
+    "version": "バージョン",
+    "lastUpdate": "最終更新"
+  },
+  "editor": {
+    "title": "開発者エディター",
+    "backToHome": "ホームに戻る",
+    "tabs": {
+      "characters": "キャラクター管理",
+      "config": "設定管理",
+      "importExport": "インポート/エクスポート"
+    },
+    "characters": {
+      "title": "キャラクター管理",
+      "description": "キャラクターデータの追加、編集、削除",
+      "addCharacter": "キャラクター追加",
+      "edit": "編集",
+      "delete": "削除"
+    },
+    "config": {
+      "title": "設定管理",
+      "description": "システム設定オプションの管理",
+      "personalities": "性格リスト（カンマ区切り）：",
+      "races": "種族リスト（カンマ区切り）：",
+      "attackTypes": "攻撃タイプ（カンマ区切り）：",
+      "deployRows": "配置列（カンマ区切り）：",
+      "roles": "役割タイプ（カンマ区切り）：",
+      "saveConfig": "設定を保存"
+    },
+    "importExport": {
+      "title": "データインポート/エクスポート",
+      "description": "データのバックアップまたは復元",
+      "exportData": "データエクスポート",
+      "importData": "データインポート",
+      "clearData": "全データクリア",
+      "jsonPreview": "JSONデータプレビュー："
+    },
+    "form": {
+      "addCharacter": "キャラクター追加",
+      "editCharacter": "キャラクター編集",
+      "characterName": "キャラクター名：",
+      "characterImage": "キャラクター画像：",
+      "personality": "性格：",
+      "stars": "星：",
+      "attackType": "攻撃タイプ：",
+      "deployRow": "配置列：",
+      "role": "役割：",
+      "race": "種族：",
+      "boardConfig": "ボード設定",
+      "uploadImage": "画像を選択",
+      "removeImage": "画像を削除",
+      "clickToUpload": "クリックして画像をアップロード",
+      "recommendedSize": "推奨サイズ：200x200 px",
+      "imageFilename": "画像ファイル名：",
+      "imageHint": "ヒント：保存後、画像が自動的にダウンロードされます。ファイルをassets/characters/フォルダに配置してください",
+      "cancel": "キャンセル",
+      "save": "保存"
+    }
+  },
+  "bulkGenerator": {
+    "title": "一括キャラクターデータジェネレーター",
+    "description": "このツールは、キャラクターデータを一括で素早く生成するのに役立ちます。CSV形式でキャラクター情報を入力でき、ツールが自動的にJSON形式に変換し、ゴールデンクレヨン記録に直接インポートできます。",
+    "tip": "ヒント：",
+    "tipText": "例の形式に従ってデータを入力してください。各行は1つのキャラクターを表し、フィールドはカンマで区切られます。",
+    "inputCSV": "CSVデータ入力",
+    "formatDesc": "形式説明：",
+    "cellCodes": "セルコード：",
+    "convert": "JSONに変換",
+    "loadExample": "例を読み込む",
+    "clear": "クリア",
+    "convertSuccess": "✓ 変換成功！",
+    "jsonOutput": "JSON出力",
+    "copyToClipboard": "クリップボードにコピー",
+    "downloadJSON": "JSONファイルをダウンロード",
+    "usage": "使用方法",
+    "step1": "形式に従って入力フィールドにキャラクターデータを入力",
+    "step2": "「JSONに変換」ボタンをクリック",
+    "step3": "生成されたJSONデータをコピーまたはダウンロード",
+    "step4": "ゴールデンクレヨン記録で「データインポート」をクリック",
+    "step5": "ダウンロードしたJSONファイルを選択するか、データを直接貼り付け",
+    "totalCharacters": "合計キャラクター",
+    "avgStars": "平均星",
+    "mostCommonRace": "最も一般的な種族"
+  },
+  "common": {
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "yes": "はい",
+    "no": "いいえ",
+    "save": "保存",
+    "close": "閉じる"
+  },
+  "errors": {
+    "noData": "表示するデータがありません",
+    "noCellType": "無効なセルタイプ"
+  }
+}
+

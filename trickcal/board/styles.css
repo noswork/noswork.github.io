@@ -866,9 +866,7 @@ main.board-wrapper {
     background: var(--bg-secondary);
     border-radius: 4px;
     margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
     font-size: 1.5rem;
     color: var(--text-muted);
     font-weight: 700;
@@ -879,8 +877,8 @@ main.board-wrapper {
 .character-avatar img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center center;
+    object-fit: cover;
+    object-position: center 45%;
     display: block;
 }
 
@@ -893,6 +891,9 @@ main.board-wrapper {
     font-size: 1.5rem;
     color: var(--text-muted);
     font-weight: 700;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 /* 角色星級（中間下方） */

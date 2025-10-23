@@ -81,6 +81,23 @@ body {
     flex-direction: column;
     overflow: hidden;
     cursor: var(--cursor-default);
+    
+    /* 禁止選取文字和圖片 */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+}
+
+/* 禁止圖片被拖曳和右鍵另存 */
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    pointer-events: auto;
 }
 
 /* 背景圖片支援 (預設不使用，需要時可啟用) */

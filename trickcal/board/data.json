@@ -724,7 +724,7 @@
       "name": "謝蒂",
       "en": "Shadi",
       "personality": "狂亂",
-      "stars": 1,
+      "stars": 3,
       "attackType": "物理",
       "deployRow": "前排",
       "role": "輸出",
@@ -945,6 +945,24 @@
       "deployRow": "後排",
       "role": "輔助",
       "race": "???",
+      "boardTypes": {
+        "layer1": [
+          "attack",
+          "defense"
+        ],
+        "layer2": [],
+        "layer3": []
+      }
+    },
+    {
+      "name": "奶油",
+      "en": "Butter",
+      "personality": "活潑",
+      "stars": 3,
+      "attackType": "物理",
+      "deployRow": "後排",
+      "role": "輸出",
+      "race": "獸人",
       "boardTypes": {
         "layer1": [
           "attack",

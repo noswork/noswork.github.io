@@ -59,31 +59,115 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateAllData();
         }
     });
+    
+    // 定期檢查 data.json 是否有更新（每30秒檢查一次）
+    setInterval(async () => {
+        try {
+            const response = await fetch('data.json');
+            const latestData = await response.json();
+            const currentCharCount = gameData.characters ? gameData.characters.length : 0;
+            const latestCharCount = latestData.characters ? latestData.characters.length : 0;
+            
+            // 如果角色數量有變化，重新載入數據
+            if (latestCharCount !== currentCharCount) {
+                console.log('檢測到 data.json 更新，正在重新載入...');
+                await loadGameData();
+                updateAllData();
+            }
+        } catch (error) {
+            // 靜默處理錯誤，避免影響用戶體驗
+            console.debug('檢查數據更新時發生錯誤:', error);
+        }
+    }, 30000); // 30秒檢查一次
 });
 
 // 載入遊戲數據
 async function loadGameData() {
-    // 優先從 localStorage 讀取（因為編輯器會更新這裡）
-    const savedData = localStorage.getItem('trickcal_board_data');
-    if (savedData) {
-        try {
-            gameData = JSON.parse(savedData);
-            console.log('從 localStorage 載入數據');
-            return;
-        } catch (error) {
-            console.error('解析 localStorage 數據失敗:', error);
-        }
-    }
-    
-    // 如果 localStorage 沒有數據，從 data.json 讀取
     try {
+        // 先從 data.json 讀取最新數據
         const response = await fetch('data.json');
-        gameData = await response.json();
-        console.log('從 data.json 載入數據');
-        // 保存到 localStorage
+        const latestData = await response.json();
+        
+        // 檢查 localStorage 中的數據版本
+        const savedData = localStorage.getItem('trickcal_board_data');
+        const savedTimestamp = localStorage.getItem('trickcal_board_data_timestamp');
+        
+        if (savedData && savedTimestamp) {
+            try {
+                const localData = JSON.parse(savedData);
+                const localTimestamp = parseInt(savedTimestamp);
+                
+                // 比較數據版本（使用角色數量作為簡單的版本檢查）
+                const localCharCount = localData.characters ? localData.characters.length : 0;
+                const latestCharCount = latestData.characters ? latestData.characters.length : 0;
+                
+                // 如果本地數據與最新數據相同，使用本地數據（保留用戶進度）
+                if (localCharCount === latestCharCount && 
+                    JSON.stringify(localData.characters) === JSON.stringify(latestData.characters)) {
+                    gameData = localData;
+                    console.log('使用 localStorage 中的數據（版本一致）');
+                    return;
+                }
+            } catch (error) {
+                console.error('解析 localStorage 數據失敗:', error);
+            }
+        }
+        
+        // 使用最新的 data.json 數據，但保留用戶進度
+        gameData = latestData;
+        console.log('從 data.json 載入最新數據');
+        
+        // 智能合併用戶進度：保留現有用戶進度，但清理已刪除角色的進度
+        if (savedData) {
+            try {
+                const localData = JSON.parse(savedData);
+                const currentCharNames = new Set(latestData.characters.map(char => char.name));
+                
+                // 清理已刪除角色的用戶進度
+                const validOwnedChars = Array.from(userProgress.ownedCharacters).filter(name => 
+                    currentCharNames.has(name)
+                );
+                userProgress.ownedCharacters = new Set(validOwnedChars);
+                
+                // 清理已刪除角色的啟動格子
+                const validActivatedCells = {};
+                Object.keys(userProgress.activatedCells).forEach(key => {
+                    const [charName] = key.split('_');
+                    if (currentCharNames.has(charName)) {
+                        validActivatedCells[key] = userProgress.activatedCells[key];
+                    }
+                });
+                userProgress.activatedCells = validActivatedCells;
+                
+                // 保存清理後的用戶進度
+                saveUserProgress();
+                
+                console.log('已清理無效的用戶進度數據');
+            } catch (error) {
+                console.error('合併用戶進度時發生錯誤:', error);
+            }
+        }
+        
+        // 保存到 localStorage 並更新時間戳
         localStorage.setItem('trickcal_board_data', JSON.stringify(gameData));
+        localStorage.setItem('trickcal_board_data_timestamp', Date.now().toString());
+        
     } catch (error) {
         console.error('載入 data.json 失敗:', error);
+        
+        // 如果 data.json 載入失敗，嘗試從 localStorage 讀取
+        const savedData = localStorage.getItem('trickcal_board_data');
+        if (savedData) {
+            try {
+                gameData = JSON.parse(savedData);
+                console.log('從 localStorage 載入備用數據');
+                return;
+            } catch (parseError) {
+                console.error('解析 localStorage 數據失敗:', parseError);
+            }
+        }
+        
+        // 最後的備用方案
         gameData = createDefaultData();
     }
 }

@@ -47,7 +47,7 @@
     --bg-image: url('assets/backgrounds/background.png');
     
     /* 性格背景顏色 - 參考圖片中的鮮明顏色 */
-    --personality-cool-bg: #62dcf3;        /* 冷靜 - 天藍色 */
+    --personality-cool-bg: #85daec;        /* 冷靜 - 天藍色 */
     --personality-mad-bg: #eb817f;        /* 狂亂 - 淺粉紅色 */
     --personality-naive-bg: #85d775;       /* 天真 - 淺綠色 */
     --personality-jolly-bg: #ebda56;       /* 活潑 - 淺黃色 */
@@ -837,13 +837,15 @@ main.board-wrapper {
 .character-card.owned {
     border-color: var(--accent-primary);
     background: var(--bg-tertiary);
-    box-shadow: 0 0 0 2px rgba(91, 142, 244, 0.3);
+    box-shadow: 0 0 0 5px rgba(91, 142, 244, 0.5), 0 0 15px rgba(91, 142, 244, 0.3);
+    border-width: 3px;
 }
 
 .character-card.activated {
     border-color: var(--success-color);
     background: var(--bg-tertiary);
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.4);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.6), 0 0 15px rgba(76, 175, 80, 0.4);
+    border-width: 3px;
 }
 
 .character-card.activated::before {
@@ -1759,11 +1761,15 @@ body.light-theme .character-card {
 body.light-theme .character-card.owned {
     background: var(--bg-tertiary);
     border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(91, 142, 244, 0.5), 0 0 15px rgba(91, 142, 244, 0.3);
+    border-width: 3px;
 }
 
 body.light-theme .character-card.activated {
     background: var(--bg-tertiary);
     border-color: var(--success-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.6), 0 0 15px rgba(76, 175, 80, 0.4);
+    border-width: 3px;
 }
 
 /* 語言選擇器樣式 */

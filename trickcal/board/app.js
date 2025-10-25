@@ -553,6 +553,20 @@ function createCharacterCard(char, cellType) {
     if (isOwned) card.classList.add('owned');
     if (isActivated) card.classList.add('activated');
     
+    // 根據性格添加背景顏色類別
+    const personalityClassMap = {
+        '冷靜': 'personality-cool',
+        '狂亂': 'personality-mad', 
+        '天真': 'personality-naive',
+        '活潑': 'personality-jolly',
+        '憂鬱': 'personality-gloomy'
+    };
+    
+    const personalityClass = personalityClassMap[char.personality];
+    if (personalityClass) {
+        card.classList.add(personalityClass);
+    }
+    
     // 嘗試載入角色圖片，如果不存在則顯示首字母
     const avatarHtml = `<div class="character-avatar">
         <img src="assets/characters/${char.en}.png" 
@@ -994,6 +1008,20 @@ function renderSettingsCharacters() {
         
         const isOwned = userProgress.ownedCharacters.has(char.name);
         if (isOwned) card.classList.add('owned');
+        
+        // 根據性格添加背景顏色類別
+        const personalityClassMap = {
+            '冷靜': 'personality-cool',
+            '狂亂': 'personality-mad', 
+            '天真': 'personality-naive',
+            '活潑': 'personality-jolly',
+            '憂鬱': 'personality-gloomy'
+        };
+        
+        const personalityClass = personalityClassMap[char.personality];
+        if (personalityClass) {
+            card.classList.add(personalityClass);
+        }
         
         // 獲取角色圖標
         const personalityIcon = gameData.personalities[char.personality]?.icon;

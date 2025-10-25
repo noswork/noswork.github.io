@@ -45,6 +45,13 @@
     
     /* 自訂背景圖片 */
     --bg-image: url('assets/backgrounds/background.png');
+    
+    /* 性格背景顏色 - 參考圖片中的鮮明顏色 */
+    --personality-cool-bg: #62dcf3;        /* 冷靜 - 天藍色 */
+    --personality-mad-bg: #eb817f;        /* 狂亂 - 淺粉紅色 */
+    --personality-naive-bg: #85d775;       /* 天真 - 淺綠色 */
+    --personality-jolly-bg: #ebda56;       /* 活潑 - 淺黃色 */
+    --personality-gloomy-bg: #a083e7;      /* 憂鬱 - 淺紫色 */
 }
 
 body.light-theme {
@@ -863,6 +870,27 @@ main.board-wrapper {
     background-repeat: no-repeat;
     background-position: center;
     z-index: 11;
+}
+
+/* 性格背景顏色類別 - 應用到角色頭像區域 */
+.character-card.personality-cool .character-avatar {
+    background: var(--personality-cool-bg);
+}
+
+.character-card.personality-mad .character-avatar {
+    background: var(--personality-mad-bg);
+}
+
+.character-card.personality-naive .character-avatar {
+    background: var(--personality-naive-bg);
+}
+
+.character-card.personality-jolly .character-avatar {
+    background: var(--personality-jolly-bg);
+}
+
+.character-card.personality-gloomy .character-avatar {
+    background: var(--personality-gloomy-bg);
 }
 
 @keyframes checkmark {

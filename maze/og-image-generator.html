@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OG Image Generator - NOS MAZE</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .og-image {
+            width: 1200px;
+            height: 630px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Maze Pattern Background */
+        .maze-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 120px;
+            font-weight: 900;
+            color: white;
+            letter-spacing: -4px;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+        }
+
+        .logo-nos {
+            display: block;
+        }
+
+        .logo-maze {
+            display: block;
+            margin-top: -15px;
+        }
+
+        .tagline {
+            font-size: 36px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .modes {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .mode-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 14px 28px;
+            border-radius: 50px;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .decorative-line {
+            width: 200px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 30px 0;
+            border-radius: 2px;
+        }
+
+        /* Maze Grid Pattern */
+        .maze-grid {
+            position: absolute;
+            top: 50px;
+            right: 50px;
+            width: 200px;
+            height: 200px;
+            opacity: 0.2;
+        }
+
+        .maze-grid rect {
+            fill: none;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .maze-grid-bottom {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            width: 150px;
+            height: 150px;
+            opacity: 0.2;
+        }
+
+        .instructions {
+            margin-top: 30px;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+        }
+
+        .instructions h3 {
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .instructions ol {
+            text-align: left;
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .alternative-method {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #ffc107;
+            border-radius: 4px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="og-image" id="ogImage">
+        <!-- Maze Pattern SVG -->
+        <svg class="maze-pattern" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+            <!-- Horizontal lines -->
+            <path d="M100,100 L1100,100 M100,150 L1100,150 M100,200 L1100,200 M100,250 L1100,250 M100,300 L1100,300 
+                     M100,350 L1100,350 M100,400 L1100,400 M100,450 L1100,450 M100,500 L1100,500 M100,530 L1100,530" 
+                  stroke="white" stroke-width="2" fill="none"/>
+            <!-- Vertical lines -->
+            <path d="M200,100 L200,530 M300,100 L300,530 M400,100 L400,530 M500,100 L500,530 M600,100 L600,530 
+                     M700,100 L700,530 M800,100 L800,530 M900,100 L900,530 M1000,100 L1000,530" 
+                  stroke="white" stroke-width="2" fill="none"/>
+        </svg>
+
+        <!-- Decorative Maze Grids -->
+        <svg class="maze-grid" viewBox="0 0 100 100">
+            <rect x="10" y="10" width="80" height="80"/>
+            <rect x="10" y="10" width="40" height="40"/>
+            <rect x="50" y="50" width="40" height="40"/>
+            <rect x="25" y="25" width="50" height="50"/>
+        </svg>
+
+        <svg class="maze-grid-bottom" viewBox="0 0 100 100">
+            <rect x="10" y="10" width="80" height="80"/>
+            <rect x="30" y="30" width="40" height="40"/>
+            <circle cx="50" cy="50" r="20" fill="none" stroke="white" stroke-width="3"/>
+        </svg>
+
+        <!-- Main Content -->
+        <div class="content">
+            <div class="logo">
+                <span class="logo-nos">NOS</span>
+                <span class="logo-maze">MAZE</span>
+            </div>
+            
+            <div class="decorative-line"></div>
+            
+            <div class="tagline">
+                挑戰你的迷宮解謎能力
+            </div>
+            
+            <div class="modes">
+                <div class="mode-badge">Just Maze</div>
+                <div class="mode-badge">Faultless</div>
+                <div class="mode-badge">Race Clock</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📸 如何保存為 PNG 圖片</h3>
+        <ol>
+            <li><strong>方法一（推薦）：</strong>右鍵點擊上方的圖片 → 選擇「另存圖片為...」→ 保存為 <code>og-image.png</code></li>
+            <li><strong>方法二：</strong>點擊下方的「下載圖片」按鈕（使用 Canvas 生成）</li>
+            <li><strong>方法三：</strong>使用瀏覽器截圖工具（確保截取完整的 1200x630 區域）</li>
+            <li>將保存的圖片命名為 <code>og-image.png</code></li>
+            <li>放到專案根目錄：<code>/Users/nos/Documents/GitHub/noswork.github.io/maze/</code></li>
+        </ol>
+        
+        <button onclick="downloadImage()">📥 下載圖片 (og-image.png)</button>
+        
+        <div class="alternative-method">
+            <strong>💡 提示：</strong>如果下載按鈕無法使用，請使用瀏覽器的開發者工具（F12）→ 截圖功能，或使用螢幕截圖工具確保截取 1200x630 像素的區域。
+        </div>
+    </div>
+
+    <script>
+        async function downloadImage() {
+            const ogImage = document.getElementById('ogImage');
+            
+            try {
+                // 使用 html2canvas 方式（需要引入庫）
+                // 這裡使用更簡單的方法：將 SVG 轉換為 Canvas
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = 1200;
+                canvas.height = 630;
+                const ctx = canvas.getContext('2d');
+                
+                // 繪製漸變背景
+                const gradient = ctx.createLinearGradient(0, 0, 1200, 630);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, 1200, 630);
+                
+                // 繪製迷宮圖案
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 2;
+                
+                // 水平線
+                for (let y = 100; y <= 530; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(100, y);
+                    ctx.lineTo(1100, y);
+                    ctx.stroke();
+                }
+                
+                // 垂直線
+                for (let x = 200; x <= 1000; x += 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 100);
+                    ctx.lineTo(x, 530);
+                    ctx.stroke();
+                }
+                
+                // 繪製文字
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+                
+                // NOS
+                ctx.font = '900 120px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetY = 4;
+                ctx.fillText('NOS', 600, 200);
+                
+                // MAZE
+                ctx.fillText('MAZE', 600, 310);
+                
+                // 裝飾線
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.fillRect(500, 330, 200, 4);
+                
+                // 標語
+                ctx.font = '500 36px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillText('挑戰你的迷宮解謎能力', 600, 400);
+                
+                // 模式徽章
+                const modes = ['Just Maze', 'Faultless', 'Race Clock'];
+                const badgeY = 500;
+                const badgeSpacing = 230;
+                const startX = 600 - badgeSpacing;
+                
+                ctx.font = '600 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                
+                modes.forEach((mode, index) => {
+                    const x = startX + (index * badgeSpacing);
+                    
+                    // 徽章背景
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                    ctx.lineWidth = 2;
+                    
+                    const textWidth = ctx.measureText(mode).width;
+                    const badgeWidth = textWidth + 56;
+                    const badgeHeight = 48;
+                    const badgeRadius = 24;
+                    
+                    ctx.beginPath();
+                    ctx.roundRect(x - badgeWidth/2, badgeY - badgeHeight/2, badgeWidth, badgeHeight, badgeRadius);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // 徽章文字
+                    ctx.fillStyle = 'white';
+                    ctx.fillText(mode, x, badgeY + 8);
+                });
+                
+                // 下載圖片
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'og-image.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    alert('✅ 圖片已下載！請檢查您的下載資料夾中的 og-image.png');
+                }, 'image/png');
+                
+            } catch (error) {
+                console.error('下載失敗:', error);
+                alert('❌ 下載失敗！請使用右鍵另存圖片，或使用截圖工具。\n\n錯誤信息：' + error.message);
+            }
+        }
+        
+        // 添加 roundRect polyfill（舊版瀏覽器可能需要）
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                this.moveTo(x + radius, y);
+                this.lineTo(x + width - radius, y);
+                this.quadraticCurveTo(x + width, y, x + width, y + radius);
+                this.lineTo(x + width, y + height - radius);
+                this.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                this.lineTo(x + radius, y + height);
+                this.quadraticCurveTo(x, y + height, x, y + height - radius);
+                this.lineTo(x, y + radius);
+                this.quadraticCurveTo(x, y, x + radius, y);
+                this.closePath();
+            };
+        }
+    </script>
+</body>
+</html>
+

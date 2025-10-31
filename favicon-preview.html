@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favicon 預覽 - NOS SITE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .preview-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .preview-card h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .preview-card p {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .icon-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .icon-container img,
+        .icon-container object {
+            display: block;
+        }
+
+        .size-label {
+            display: inline-block;
+            background: #6366f1;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
+        .status.ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .instructions {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .instructions h3 {
+            color: #1e40af;
+            margin-bottom: 1rem;
+        }
+
+        .instructions ol {
+            margin-left: 1.5rem;
+            color: #1e3a8a;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .instructions a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .instructions a:hover {
+            text-decoration: underline;
+        }
+
+        .dark-mode {
+            background: #1e293b;
+            color: white;
+        }
+
+        .dark-mode .container {
+            background: #334155;
+        }
+
+        .dark-mode h1,
+        .dark-mode h2 {
+            color: white;
+        }
+
+        .dark-mode p,
+        .dark-mode .subtitle {
+            color: #cbd5e1;
+        }
+
+        .dark-mode .preview-card {
+            background: #475569;
+        }
+
+        .dark-mode .icon-container {
+            background: #1e293b;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .dark-mode .theme-toggle {
+            background: #475569;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleTheme()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </button>
+
+    <div class="container">
+        <h1>🎨 Favicon 預覽</h1>
+        <p class="subtitle">NOS SITE 圖標系統預覽與測試</p>
+
+        <div class="preview-grid">
+            <!-- SVG Favicon -->
+            <div class="preview-card">
+                <h2>主 Favicon</h2>
+                <p>SVG 格式，支援現代瀏覽器</p>
+                <div class="icon-container">
+                    <object data="favicon.svg" type="image/svg+xml" width="64" height="64">
+                        <img src="favicon.svg" alt="Favicon" width="64" height="64">
+                    </object>
+                </div>
+                <div class="size-label">64×64 (可縮放)</div>
+                <div class="status ready">
+                    ✓ 已準備就緒
+                </div>
+            </div>
+
+            <!-- 16x16 PNG -->
+            <div class="preview-card">
+                <h2>小型圖標</h2>
+                <p>16×16 像素 PNG</p>
+                <div class="icon-container">
+                    <img src="assets/icons/favicon-16x16.png" alt="16x16" width="32" height="32" 
+                         onerror="this.parentElement.innerHTML='<p style=\'color: #dc2626;\'>❌ 待生成</p>'">
+                </div>
+                <div class="size-label">16×16</div>
+                <div class="status pending">
+                    ⚠ 需要生成
+                </div>
+            </div>
+
+            <!-- 32x32 PNG -->
+            <div class="preview-card">
+                <h2>標準圖標</h2>
+                <p>32×32 像素 PNG</p>
+                <div class="icon-container">
+                    <img src="assets/icons/favicon-32x32.png" alt="32x32" width="32" height="32"
+                         onerror="this.parentElement.innerHTML='<p style=\'color: #dc2626;\'>❌ 待生成</p>'">
+                </div>
+                <div class="size-label">32×32</div>
+                <div class="status pending">
+                    ⚠ 需要生成
+                </div>
+            </div>
+
+            <!-- Apple Touch Icon -->
+            <div class="preview-card">
+                <h2>iOS Safari</h2>
+                <p>180×180 像素 PNG</p>
+                <div class="icon-container">
+                    <img src="assets/icons/apple-touch-icon.png" alt="Apple Touch" width="64" height="64"
+                         onerror="this.parentElement.innerHTML='<p style=\'color: #dc2626;\'>❌ 待生成</p>'">
+                </div>
+                <div class="size-label">180×180</div>
+                <div class="status pending">
+                    ⚠ 需要生成
+                </div>
+            </div>
+
+            <!-- Android 192 -->
+            <div class="preview-card">
+                <h2>Android 小圖標</h2>
+                <p>192×192 像素 PNG</p>
+                <div class="icon-container">
+                    <img src="assets/icons/icon-192.png" alt="Android 192" width="64" height="64"
+                         onerror="this.parentElement.innerHTML='<p style=\'color: #dc2626;\'>❌ 待生成</p>'">
+                </div>
+                <div class="size-label">192×192</div>
+                <div class="status pending">
+                    ⚠ 需要生成
+                </div>
+            </div>
+
+            <!-- Android 512 -->
+            <div class="preview-card">
+                <h2>Android 大圖標</h2>
+                <p>512×512 像素 PNG</p>
+                <div class="icon-container">
+                    <img src="assets/icons/icon-512.png" alt="Android 512" width="64" height="64"
+                         onerror="this.parentElement.innerHTML='<p style=\'color: #dc2626;\'>❌ 待生成</p>'">
+                </div>
+                <div class="size-label">512×512</div>
+                <div class="status pending">
+                    ⚠ 需要生成
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📝 如何生成 PNG 圖標</h3>
+            <ol>
+                <li>訪問 <a href="https://realfavicongenerator.net/" target="_blank">RealFaviconGenerator</a></li>
+                <li>上傳 <code>favicon.svg</code> 文件</li>
+                <li>配置各平台的圖標外觀（可選）</li>
+                <li>點擊「Generate your Favicons and HTML code」</li>
+                <li>下載生成的圖標包</li>
+                <li>解壓並複製所有 PNG 文件到 <code>assets/icons/</code> 目錄</li>
+                <li>重新載入此頁面查看結果</li>
+            </ol>
+            <p style="margin-top: 1rem; color: #1e40af;">
+                💡 <strong>提示</strong>：查看 <a href="FAVICON_SETUP.md">FAVICON_SETUP.md</a> 了解詳細的設置指南。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('preview-theme', isDark ? 'dark' : 'light');
+        }
+
+        // 載入保存的主題
+        if (localStorage.getItem('preview-theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+
+        // 檢查圖標文件是否存在
+        window.addEventListener('load', () => {
+            console.log('🎨 Favicon 預覽頁面已載入');
+            console.log('📝 查看 FAVICON_SETUP.md 了解如何生成 PNG 圖標');
+        });
+    </script>
+</body>
+</html>
+

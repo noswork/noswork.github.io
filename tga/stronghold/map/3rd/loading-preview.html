@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<!--
+  Copyright © 2025 nos
+  All Rights Reserved.
+  
+  未經授權，禁止使用、複製、修改或分發本代碼。
+  Unauthorized copying, modification, or distribution is strictly prohibited.
+  
+  Contact: discord: nos1130
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>導出動畫預覽 | Loading Animation Preview</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png" />
+    
+    <style>
+      /* 基礎樣式 */
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "Inter", "Segoe UI", "PingFang TC", system-ui, -apple-system, sans-serif;
+        background: #0e1420;
+        overflow-x: hidden;
+      }
+
+      /* CSS Variables */
+      :root {
+        color-scheme: dark;
+        --panel-bg: rgba(18, 25, 38, 0.92);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --panel-text: #f0f6ff;
+        --panel-muted: #90a4c0;
+        --outline-color: rgba(111, 167, 255, 0.8);
+      }
+
+      /* Light Theme */
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --panel-bg: rgba(248, 250, 252, 0.95);
+        --panel-border: rgba(0, 0, 0, 0.08);
+        --panel-text: #1e293b;
+        --panel-muted: #64748b;
+        --outline-color: rgba(59, 130, 246, 0.6);
+      }
+
+      :root[data-theme="light"] body {
+        background: #e8eef5;
+      }
+
+      /* 背景紋理 */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: url('assets/background.png') center/cover no-repeat,
+                    linear-gradient(135deg, rgba(14, 20, 32, 0.88) 0%, rgba(14, 20, 32, 0.82) 100%);
+        pointer-events: none;
+      }
+
+      :root[data-theme="light"] body::before {
+        background: url('assets/background.png') center/cover no-repeat,
+                    linear-gradient(135deg, rgba(232, 238, 245, 0.9) 0%, rgba(232, 238, 245, 0.85) 100%);
+      }
+
+      /* 主容器 */
+      .container {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+
+      /* 標題區域 */
+      .header {
+        text-align: center;
+        margin-bottom: 48px;
+      }
+
+      .header h1 {
+        margin: 0 0 12px 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--panel-text);
+      }
+
+      .header p {
+        margin: 0;
+        font-size: 16px;
+        color: var(--panel-muted);
+      }
+
+      /* Loading 動畫樣式 */
+      .export-loading-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(14, 20, 32, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 1;
+        pointer-events: auto;
+        transition: opacity 300ms ease;
+      }
+
+      :root[data-theme="light"] .export-loading-overlay {
+        background: rgba(232, 238, 245, 0.95);
+      }
+
+      .export-loading-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        max-width: 500px;
+        padding: 48px;
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        text-align: center;
+      }
+
+      .export-loading-animation {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        border-radius: 16px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.3);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+
+      .export-loading-gif {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .export-loading-text {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
+
+      .export-loading-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--panel-text);
+        margin: 0;
+        letter-spacing: 0.02em;
+      }
+
+      .export-loading-subtitle {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--panel-muted);
+        margin: 0;
+      }
+
+      .export-loading-progress {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      :root[data-theme="light"] .export-loading-progress {
+        background: rgba(0, 0, 0, 0.08);
+      }
+
+      .export-loading-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, 
+          rgba(104, 162, 255, 0.9) 0%,
+          rgba(142, 93, 255, 0.9) 50%,
+          rgba(104, 162, 255, 0.9) 100%
+        );
+        background-size: 200% 100%;
+        border-radius: 999px;
+        width: 0%;
+        transition: width 300ms ease;
+        animation: progressShine 2s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(104, 162, 255, 0.6);
+      }
+
+      @keyframes progressShine {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* 控制按鈕區域 */
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 32px;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--panel-text);
+        background: var(--panel-bg);
+        border: 1px solid var(--panel-border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 200ms ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, rgba(104, 162, 255, 0.92), rgba(142, 93, 255, 0.9));
+        border-color: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
+
+      .progress-info {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--panel-muted);
+        text-align: center;
+      }
+
+      /* 響應式設計 */
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 24px;
+        }
+
+        .header p {
+          font-size: 14px;
+        }
+
+        .export-loading-content {
+          padding: 32px 24px;
+          margin: 16px;
+        }
+
+        .export-loading-animation {
+          width: 160px;
+          height: 160px;
+        }
+
+        .export-loading-title {
+          font-size: 18px;
+        }
+
+        .export-loading-subtitle {
+          font-size: 13px;
+        }
+
+        .controls {
+          flex-direction: column;
+          width: 100%;
+          max-width: 300px;
+        }
+
+        .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎬 導出動畫預覽</h1>
+        <p>Loading Animation Preview for Map Export</p>
+      </div>
+
+      <!-- Loading 動畫 -->
+      <div id="export-loading" class="export-loading-overlay">
+          <div class="export-loading-content">
+            <div class="export-loading-animation">
+              <img id="loading-gif" 
+                   src="" 
+                   alt="Tokyo Ghoul Loading Animation" 
+                   class="export-loading-gif">
+            </div>
+            <div class="export-loading-text">
+            <h2 class="export-loading-title" id="loading-title">正在導出地圖...</h2>
+            <p class="export-loading-subtitle" id="loading-subtitle">請稍候，正在處理圖片</p>
+          </div>
+          <div class="export-loading-progress">
+            <div id="export-progress-bar" class="export-loading-progress-bar"></div>
+          </div>
+          <div class="progress-info">
+            <span id="progress-text">進度：0%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 控制按鈕 -->
+      <div class="controls">
+        <button class="btn btn-primary" onclick="simulateProgress()">
+          ▶️ 模擬進度
+        </button>
+        <button class="btn" onclick="loadRandomGif()">
+          🎲 隨機換圖
+        </button>
+        <button class="btn" onclick="resetProgress()">
+          🔄 重置
+        </button>
+        <button class="btn" onclick="toggleTheme()">
+          🎨 切換主題
+        </button>
+        <button class="btn" onclick="toggleLanguage()">
+          🌐 切換語言
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let currentProgress = 0;
+      let currentLanguage = 'zh-TW';
+      let progressInterval = null;
+
+      const translations = {
+        'zh-TW': {
+          title: '正在導出地圖...',
+          subtitle: '請稍候，正在處理圖片',
+          progress: '進度：'
+        },
+        'en': {
+          title: 'Exporting Map...',
+          subtitle: 'Please wait, processing images',
+          progress: 'Progress: '
+        }
+      };
+
+      // 模擬進度
+      function simulateProgress() {
+        resetProgress();
+        
+        const steps = [
+          { progress: 10, delay: 200 },
+          { progress: 20, delay: 300 },
+          { progress: 30, delay: 400 },
+          { progress: 50, delay: 600 },
+          { progress: 60, delay: 300 },
+          { progress: 70, delay: 400 },
+          { progress: 85, delay: 500 },
+          { progress: 95, delay: 300 },
+          { progress: 100, delay: 400 }
+        ];
+
+        let index = 0;
+        
+        function nextStep() {
+          if (index >= steps.length) return;
+          
+          const step = steps[index];
+          updateProgress(step.progress);
+          index++;
+          
+          setTimeout(nextStep, step.delay);
+        }
+
+        nextStep();
+      }
+
+      // 更新進度
+      function updateProgress(percent) {
+        currentProgress = percent;
+        const progressBar = document.getElementById('export-progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        if (progressBar) {
+          progressBar.style.width = `${percent}%`;
+        }
+        
+        if (progressText) {
+          progressText.textContent = `${translations[currentLanguage].progress}${percent}%`;
+        }
+      }
+
+      // 重置進度
+      function resetProgress() {
+        updateProgress(0);
+      }
+
+      // 切換主題
+      function toggleTheme() {
+        const root = document.documentElement;
+        const currentTheme = root.getAttribute('data-theme');
+        
+        if (currentTheme === 'light') {
+          root.removeAttribute('data-theme');
+        } else {
+          root.setAttribute('data-theme', 'light');
+        }
+      }
+
+      // 切換語言
+      function toggleLanguage() {
+        currentLanguage = currentLanguage === 'zh-TW' ? 'en' : 'zh-TW';
+        
+        const title = document.getElementById('loading-title');
+        const subtitle = document.getElementById('loading-subtitle');
+        const progressText = document.getElementById('progress-text');
+        
+        if (title) {
+          title.textContent = translations[currentLanguage].title;
+        }
+        
+        if (subtitle) {
+          subtitle.textContent = translations[currentLanguage].subtitle;
+        }
+        
+        if (progressText) {
+          progressText.textContent = `${translations[currentLanguage].progress}${currentProgress}%`;
+        }
+      }
+
+      // 隨機選擇 GIF
+      let cachedGifList = null;
+      async function loadRandomGif() {
+        try {
+          const loadingGif = document.getElementById('loading-gif');
+          
+          // 如果還沒有加載 GIF 列表，則加載它
+          if (!cachedGifList) {
+            const response = await fetch('data/gif-index.json');
+            if (response.ok) {
+              cachedGifList = await response.json();
+              console.log(`✅ 已載入 ${cachedGifList.length} 個 Tokyo Ghoul GIF`);
+            } else {
+              console.warn('⚠️ 無法載入 GIF 列表');
+              return;
+            }
+          }
+          
+          // 隨機選擇一個 GIF
+          if (cachedGifList && cachedGifList.length > 0 && loadingGif) {
+            const randomIndex = Math.floor(Math.random() * cachedGifList.length);
+            const gifFilename = cachedGifList[randomIndex];
+            loadingGif.src = `assets/loading-gifs/${gifFilename}`;
+            console.log(`🎬 已載入隨機 GIF: ${gifFilename}`);
+          }
+        } catch (error) {
+          console.error('❌ 載入隨機 GIF 時出錯:', error);
+        }
+      }
+
+      // 頁面載入時初始化
+      window.addEventListener('load', async () => {
+        console.log('Loading animation preview loaded');
+        // 初始顯示進度
+        updateProgress(0);
+        // 載入隨機 GIF
+        await loadRandomGif();
+      });
+    </script>
+  </body>
+</html>
+

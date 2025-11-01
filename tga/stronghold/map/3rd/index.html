@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!--
+  Copyright © 2025 nos
+  All Rights Reserved.
+  
+  未經授權，禁止使用、複製、修改或分發本代碼。
+  Unauthorized copying, modification, or distribution is strictly prohibited.
+  
+  Contact: discord: nos1130
+-->
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>據點地圖v3｜Nos</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png" />
+    
+    <!-- 樣式文件 -->
+    <link rel="stylesheet" href="styles/map.css" />
+  </head>
+  <body>
+    <!-- 頁面載入動畫 -->
+    <div id="page-loading" class="page-loading-overlay">
+      <div class="page-loading-content">
+        <div class="page-loading-animation">
+          <img id="page-loading-gif" src="" alt="Loading..." class="page-loading-gif">
+        </div>
+        <div class="page-loading-text">
+          <div class="loading-spinner"></div>
+          <p class="loading-message" data-i18n="pageLoading">載入中...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="map-root">
+      <!-- 面板切換按鈕 -->
+      <button id="panel-toggle" class="panel-toggle-button" aria-label="切換功能面板" title="開啟/關閉功能面板">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path class="toggle-icon-bars" d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path class="toggle-icon-close" d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      
+      <div id="control-panel" class="map-overlay" aria-label="功能面板">
+        <header class="panel-header">
+          <h1 data-i18n="panelHeader">功能面板</h1>
+        </header>
+
+        <section class="panel-section" aria-labelledby="block-marking-heading">
+          <div class="section-title">
+            <h2 id="block-marking-heading" data-i18n="blockMarking">區塊標記</h2>
+            <p class="section-caption" data-i18n="blockMarkingCaption">點擊/觸摸標記，長按清除</p>
+          </div>
+
+          <fieldset class="mark-mode-options" role="radiogroup" aria-label="標記模式">
+            <legend class="sr-only" data-i18n="markMode">標記模式</legend>
+            <label class="mode-option" aria-label="標記模式">
+              <input type="radio" name="mark-mode" value="add" checked />
+              <span data-i18n="markMode">標記模式</span>
+            </label>
+            <label class="mode-option" aria-label="清除模式">
+              <input type="radio" name="mark-mode" value="remove" />
+              <span data-i18n="clearMode">清除模式</span>
+            </label>
+          </fieldset>
+
+          <fieldset class="color-options" role="radiogroup" aria-label="標記顏色">
+            <legend class="sr-only">標記顏色</legend>
+            <label class="color-option" aria-label="醒目紅">
+              <input type="radio" name="block-color" value="#ff6961" checked />
+              <span class="color-swatch" style="--swatch-color: #ff6961"></span>
+            </label>
+            <label class="color-option" aria-label="亮橙">
+              <input type="radio" name="block-color" value="#ffaa3b" />
+              <span class="color-swatch" style="--swatch-color: #ffaa3b"></span>
+            </label>
+            <label class="color-option" aria-label="亮黃">
+              <input type="radio" name="block-color" value="#ffd966" />
+              <span class="color-swatch" style="--swatch-color: #ffd966"></span>
+            </label>
+            <label class="color-option" aria-label="柔綠">
+              <input type="radio" name="block-color" value="#8bd17c" />
+              <span class="color-swatch" style="--swatch-color: #8bd17c"></span>
+            </label>
+            <label class="color-option" aria-label="湖藍">
+              <input type="radio" name="block-color" value="#63b4ff" />
+              <span class="color-swatch" style="--swatch-color: #63b4ff"></span>
+            </label>
+            <label class="color-option" aria-label="霓虹紫">
+              <input type="radio" name="block-color" value="#bc8cff" />
+              <span class="color-swatch" style="--swatch-color: #bc8cff"></span>
+            </label>
+            <label class="color-option color-option--custom" aria-label="自訂顏色">
+              <input type="radio" name="block-color" value="custom" />
+              <span class="color-swatch custom" style="--swatch-color: #f1c40f">
+                <input
+                  id="block-color-custom"
+                  type="color"
+                  value="#f1c40f"
+                  aria-label="選擇自訂顏色"
+                />
+              </span>
+            </label>
+          </fieldset>
+
+          <div class="export-quality-section">
+            <label class="export-quality-label">
+              <span data-i18n="exportQuality">導出品質</span>
+            </label>
+            <fieldset class="export-quality-options" role="radiogroup" aria-label="導出品質">
+              <legend class="sr-only" data-i18n="exportQuality">導出品質</legend>
+              <label class="quality-option" aria-label="低品質">
+                <input type="radio" name="export-quality" value="low" />
+                <span data-i18n="qualityLow">低</span>
+              </label>
+              <label class="quality-option" aria-label="中品質">
+                <input type="radio" name="export-quality" value="medium" />
+                <span data-i18n="qualityMedium">中</span>
+              </label>
+              <label class="quality-option" aria-label="高品質">
+                <input type="radio" name="export-quality" value="high" checked />
+                <span data-i18n="qualityHigh">高</span>
+              </label>
+            </fieldset>
+          </div>
+
+          <div class="panel-actions">
+            <button id="block-clear" type="button" class="panel-button" data-i18n="clearAllMarks">清除所有標記</button>
+            <button id="map-export" type="button" class="panel-button panel-button--accent" data-i18n="exportMap">導出地圖</button>
+          </div>
+        </section>
+
+        <section class="panel-section theme-toggle-section" aria-labelledby="theme-heading">
+          <h2 id="theme-heading" class="section-subtitle" data-i18n="themeSettings">主題設定</h2>
+          <div class="theme-toggle-buttons">
+            <button id="theme-dark" type="button" class="theme-button active" aria-label="切換到暗黑主題">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span data-i18n="themeDark">暗黑</span>
+            </button>
+            <button id="theme-light" type="button" class="theme-button" aria-label="切換到明亮主題">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <span data-i18n="themeLight">明亮</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="panel-section language-toggle-section" aria-labelledby="language-heading">
+          <h2 id="language-heading" class="section-subtitle" data-i18n="languageSettings">語言設定</h2>
+          <div class="language-toggle-buttons">
+            <button id="lang-tw" type="button" class="language-button active" aria-label="切換到繁體中文">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 5h16M4 9h16M4 13h16M4 17h10"></path>
+                <circle cx="18" cy="17" r="3"></circle>
+              </svg>
+              <span data-i18n="languageTW">繁體中文</span>
+            </button>
+            <button id="lang-en" type="button" class="language-button" aria-label="Switch to English">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span data-i18n="languageEN">English</span>
+            </button>
+          </div>
+        </section>
+      </div>
+      <svg id="hex-map" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Glow effect for highlighted hexagons -->
+          <filter id="hover-glow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <!-- Hexagon grid layer -->
+        <g id="hex-layer"></g>
+        
+        <!-- Mark layer (above grid, for colored marks) -->
+        <g id="mark-layer"></g>
+        
+        <!-- Building icons layer (above marks) -->
+        <g id="building-layer"></g>
+        
+        <!-- Label layer (above everything) -->
+        <g id="label-layer"></g>
+      </svg>
+    </div>
+    <div role="status" aria-live="polite" class="sr-only">
+      Interactive hex map loaded
+    </div>
+
+    <!-- Discord ID -->
+    <div class="discord-container">
+      <a href="https://discord.com/login" target="_blank" rel="noopener noreferrer" class="discord-link" aria-label="Discord Login">
+        <svg class="discord-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/>
+        </svg>
+        <span class="discord-id">nos1130</span>
+      </a>
+    </div>
+
+    <!-- 導出等待動畫 -->
+    <div id="export-loading" class="export-loading-overlay">
+        <div class="export-loading-content">
+          <div class="export-loading-animation">
+            <img id="loading-gif" 
+                 src="" 
+                 alt="Tokyo Ghoul Loading Animation" 
+                 class="export-loading-gif">
+          </div>
+          <div class="export-loading-text">
+          <h2 class="export-loading-title" data-i18n="exportLoadingTitle">正在導出地圖...</h2>
+          <p class="export-loading-subtitle" data-i18n="exportLoadingSubtitle">請稍候，正在處理圖片</p>
+        </div>
+        <div class="export-loading-progress">
+          <div id="export-progress-bar" class="export-loading-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 配置文件 (必須先載入) -->
+    <script src="scripts/config.js"></script>
+    
+    <!-- 主邏輯文件 -->
+    <script src="scripts/map.js"></script>
+  </body>
+</html>

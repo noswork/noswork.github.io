@@ -789,7 +789,7 @@ Unauthorized copying, modification, or distribution is strictly prohibited.
 
 **開發者**：nos
 
-**Discord**：nos1130
+**Discord**：noswork
 
 **項目位置**：`../noswork.github.io/tga/stronghold/map/3rd/`
 
@@ -927,4 +927,4 @@ window.map.setTheme('light');             // 切換主題
 
 *最後更新：2025-10-05*
 *版本：4.0*
-*作者：nos (Discord: nos1130)*
+*作者：nos (Discord: noswork)*

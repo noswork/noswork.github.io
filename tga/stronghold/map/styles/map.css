@@ -5,7 +5,7 @@
  * 未經授權，禁止使用、複製、修改或分發本代碼。
  * Unauthorized copying, modification, or distribution is strictly prohibited.
  * 
- * Contact: discord: nos1130
+ * Contact: discord: noswork
  */
 
 /**

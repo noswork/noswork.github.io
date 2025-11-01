@@ -324,9 +324,12 @@ body {
 /* Tools Grid */
 .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: var(--spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
     margin-bottom: var(--spacing-xl);
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .tool-card {
@@ -337,10 +340,13 @@ body {
     text-align: center;
     transition: all var(--transition-base);
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
 }
 
 .tool-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--shadow-xl);
     border-color: var(--primary-color);
 }
@@ -637,6 +643,11 @@ body {
     justify-content: center;
     border-radius: var(--radius-lg);
     flex-shrink: 0;
+}
+
+.tga-icon {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
 }
 
 .maze-icon {

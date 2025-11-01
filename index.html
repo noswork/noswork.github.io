@@ -76,7 +76,7 @@
             
             <ul class="nav-menu" id="navMenu">
                 <li class="nav-item"><a href="#home" class="nav-link active" data-i18n="nav_home">首頁</a></li>
-                <li class="nav-item"><a href="#trickcal" class="nav-link" data-i18n="nav_trickcal">詭計少女</a></li>
+                <li class="nav-item"><a href="#trickcal" class="nav-link" data-i18n="nav_trickcal">嘟嘟臉</a></li>
                 <li class="nav-item"><a href="#tools" class="nav-link" data-i18n="nav_tools">其他工具</a></li>
             </ul>
         </div>
@@ -109,9 +109,21 @@
                                     <circle cx="32" cy="28" r="2" fill="currentColor"/>
                                 </svg>
                             </div>
-                            <h3 data-i18n="tool_trickcal_title">詭計少女計算器</h3>
+                            <h3 data-i18n="tool_trickcal_title">嘟嘟臉惡作劇</h3>
                             <p data-i18n="tool_trickcal_desc">角色記錄、掃蕩計算、食物喜好查詢</p>
                             <a href="#trickcal" class="tool-link" data-i18n="learn_more">了解更多 →</a>
+                        </div>
+                        
+                        <div class="tool-card" data-tool="tga">
+                            <div class="tool-icon">
+                                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M24 4L8 12V22C8 32 14 40 24 44C34 40 40 32 40 22V12L24 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                                    <path d="M24 16V24M24 32H24.02" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <h3 data-i18n="tool_tga_title">東京喰種地圖</h3>
+                            <p data-i18n="tool_tga_desc">互動式東京喰種據點地圖，探索遊戲世界</p>
+                            <a href="tga/stronghold/map/" class="tool-link" data-i18n="explore_map">探索地圖 →</a>
                         </div>
                         
                         <div class="tool-card" data-tool="maze">
@@ -163,8 +175,8 @@
             <div class="section-container">
                 <div class="section-header">
                     <span class="section-label" data-i18n="featured_tool">主打工具</span>
-                    <h2 class="section-title" data-i18n="trickcal_title">詭計少女計算器</h2>
-                    <p class="section-subtitle" data-i18n="trickcal_subtitle">專為《詭計少女》玩家打造的全方位輔助工具</p>
+                    <h2 class="section-title" data-i18n="trickcal_title">嘟嘟臉惡作劇</h2>
+                    <p class="section-subtitle" data-i18n="trickcal_subtitle">專為《嘟嘟臉惡作劇》玩家打造的全方位輔助工具</p>
                 </div>
                 
                 <div class="trickcal-content">
@@ -290,6 +302,33 @@
                 <div class="tools-detailed">
                     <div class="tool-detail-card">
                         <div class="tool-detail-header">
+                            <div class="tool-detail-icon tga-icon">
+                                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M24 4L8 12V22C8 32 14 40 24 44C34 40 40 32 40 22V12L24 4Z" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                                    <path d="M24 16V24M24 32H24.02" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 data-i18n="tool_tga_title">東京喰種地圖</h3>
+                                <p class="tool-detail-subtitle" data-i18n="tga_subtitle">互動式據點地圖</p>
+                            </div>
+                        </div>
+                        <div class="tool-detail-body">
+                            <p data-i18n="tga_description">探索東京喰種遊戲世界的互動式地圖，查看各個據點位置和詳細資訊。</p>
+                            <ul class="tool-features">
+                                <li data-i18n="tga_feat1">互動式地圖瀏覽</li>
+                                <li data-i18n="tga_feat2">據點詳細資訊</li>
+                                <li data-i18n="tga_feat3">多語言支援</li>
+                                <li data-i18n="tga_feat4">響應式設計</li>
+                            </ul>
+                        </div>
+                        <div class="tool-detail-footer">
+                            <a href="tga/stronghold/map/" class="btn btn-outline" data-i18n="explore_map">探索地圖</a>
+                        </div>
+                    </div>
+                    
+                    <div class="tool-detail-card">
+                        <div class="tool-detail-header">
                             <div class="tool-detail-icon maze-icon">
                                 <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2.5"/>
@@ -391,7 +430,8 @@
                     <div class="footer-section">
                         <h4 data-i18n="footer_main_tools">主要工具</h4>
                         <ul>
-                            <li><a href="https://trickcal.nossite.com" target="_blank" data-i18n="tool_trickcal_title">詭計少女計算器</a></li>
+                            <li><a href="https://trickcal.nossite.com" target="_blank" data-i18n="tool_trickcal_title">嘟嘟臉惡作劇</a></li>
+                            <li><a href="tga/stronghold/map/" data-i18n="tool_tga_title">東京喰種地圖</a></li>
                             <li><a href="maze/" data-i18n="tool_maze_title">迷宮遊戲</a></li>
                             <li><a href="Prompt-Optimizer/" data-i18n="tool_optimizer_title">Prompt 優化器</a></li>
                             <li><a href="s2t/" data-i18n="tool_s2t_title">簡繁轉換工具</a></li>
